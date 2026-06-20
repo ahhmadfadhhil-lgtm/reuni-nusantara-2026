@@ -767,8 +767,8 @@
           const ok = String(d.payment_status).toLowerCase() === 'success';
           const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
           return `
-          <div id="rnsTicketCard" style="width:760px;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
-            <div style="position:relative;width:100%;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
+          <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
+            <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
               <div style="font-size:12px;letter-spacing:0.32em;text-transform:uppercase;opacity:.85;">E-Ticket • Reunusa 2026</div>
               <h1 style="font-family:'Anybody',sans-serif;font-weight:700;font-size:44px;line-height:1;margin:0;">REUNUSA<br/>2026</h1>
               <span style="align-self:flex-start;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">Reuni Akbar Alumni Husnul Khotimah</span>
@@ -813,7 +813,7 @@
 
             // Render off-screen agar html2canvas dapat capture penuh.
             const wrap = document.createElement('div');
-            wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:780px;background:#FAF6F0;padding:10px;z-index:-1;';
+            wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
             wrap.innerHTML = buildTicketHtml(row);
             document.body.appendChild(wrap);
             // Tunggu QR/font load
@@ -822,7 +822,7 @@
               margin: 8,
               filename: `e-ticket-reunusa-${code}.pdf`,
               image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', windowWidth: 820 },
+              html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
               jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
               pagebreak: { mode: ['avoid-all', 'css'] },
             }).from(wrap.firstElementChild).save();
