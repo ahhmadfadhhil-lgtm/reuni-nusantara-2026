@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     REUNUSA 2026 — Halaman Pendaftaran (Wizard 3 langkah)
+     ============================================================ -->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Reunusa 2026 — Ambil Tiket Reuni Nusantara</title>
+    <link rel="icon" type="image/png" href="/assets/pavicon.png" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Pembayaran: VERIFIKASI MANUAL oleh panitia (QRIS + transfer bank + upload bukti). -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      html { scroll-behavior: smooth; }
+      body {
+        font-family: 'Alexandria', system-ui, sans-serif;
+        background-image: linear-gradient(114.907deg, rgb(255, 231, 132) 0%, rgb(252, 188, 202) 100%);
+        min-height: 100vh;
+      }
+      .font-display { font-family: 'Anybody', sans-serif; }
+
+      .field-label {
+        font-weight: 500; font-size: 16px; line-height: 24px;
+        color: #122f18; margin-bottom: 8px; display: block;
+      }
+      .field-hint { font-weight: 300; font-size: 14px; color: rgba(26,58,46,0.6); margin-top: 6px; }
+      .field-sub { font-weight: 300; font-size: 13px; color: rgba(26,58,46,0.55); margin-left: 6px; }
+      .field-error { font-size: 13px; color: #b91c1c; margin-top: 6px; display: none; }
+      .field-error.show { display: block; }
+
+      .input-base {
+        background: #faf6f0; border: 1px solid rgba(45,117,86,0.25);
+        border-radius: 10px; height: 50px; width: 100%;
+        padding: 13px 17px; font-size: 16px; color: #122f18;
+        outline: none; transition: border-color .15s, box-shadow .15s;
+      }
+      .input-base::placeholder { color: rgba(26,58,46,0.5); }
+      .input-base:focus { border-color: #122f18; box-shadow: 0 0 0 3px rgba(18,47,24,0.08); }
+      .input-base.invalid { border-color: #b91c1c; }
+      textarea.input-base { height: auto; min-height: 90px; }
+
+      /* Card-style radios/checks (default) */
+      .radio-card, .check-card {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 14px; border: 1px solid rgba(45,117,86,0.25);
+        border-radius: 10px; background: #faf6f0; cursor: pointer;
+        transition: all .15s;
+      }
+      .radio-card:hover, .check-card:hover { border-color: #2d7556; }
+      .radio-dot, .check-box {
+        width: 20px; height: 20px; flex-shrink: 0;
+        border: 2px solid #636366; border-radius: 50%;
+        display: grid; place-items: center; transition: all .15s;
+      }
+      .check-box { border-radius: 5px; }
+      input[type="radio"], input[type="checkbox"] { display: none; }
+      input[type="radio"]:checked + .radio-card { border-color: #122f18; background: #fff; }
+      input[type="radio"]:checked + .radio-card .radio-dot { border-color: #122f18; }
+      input[type="radio"]:checked + .radio-card .radio-dot::after {
+        content: ''; width: 10px; height: 10px; border-radius: 50%; background: #122f18;
+      }
+      input[type="checkbox"]:checked + .check-card { border-color: #122f18; background: #fff; }
+      input[type="checkbox"]:checked + .check-card .check-box {
+        border-color: #122f18; background: #122f18;
+      }
+      input[type="checkbox"]:checked + .check-card .check-box::after {
+        content: ''; width: 6px; height: 10px; border: solid #faf6f0;
+        border-width: 0 2px 2px 0; transform: rotate(45deg) translate(-1px, -1px);
+      }
+
+      /* Plain radio (no frame) */
+      .radio-plain {
+        display: flex; align-items: center; gap: 10px;
+        padding: 6px 2px; cursor: pointer;
+      }
+      .radio-plain .radio-dot { border-color: #636366; }
+      input[type="radio"]:checked + .radio-plain .radio-dot { border-color: #122f18; }
+      input[type="radio"]:checked + .radio-plain .radio-dot::after {
+        content: ''; width: 10px; height: 10px; border-radius: 50%; background: #122f18;
+      }
+
+      /* Sektor disabled state */
+      .sektor-wrap.disabled { opacity: 0.45; pointer-events: none; filter: grayscale(40%); }
+
+      .btn-primary {
+        background: #122f18; color: #faf6f0; border-radius: 10px;
+        height: 56px; padding: 0 24px; display: inline-flex;
+        align-items: center; justify-content: center; gap: 8px;
+        font-weight: 500; font-size: 16px;
+        box-shadow: 0 10px 7.5px rgba(0,0,0,0.1), 0 4px 3px rgba(0,0,0,0.1);
+        transition: transform .1s, opacity .15s;
+      }
+      .btn-primary:hover { opacity: .92; }
+      .btn-primary:active { transform: translateY(1px); }
+      .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+      .btn-secondary {
+        background: transparent; color: #122f18; border: 1px solid #122f18;
+        border-radius: 10px; height: 56px; padding: 0 24px;
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 8px; font-weight: 500; font-size: 16px; transition: background .15s;
+      }
+      .btn-secondary:hover { background: rgba(18,47,24,0.06); }
+
+      .stepper-line { height: 3px; background: rgba(18,47,24,0.15); border-radius: 3px; flex: 1; }
+      .stepper-line.active { background: #122f18; }
+      .stepper-dot {
+        width: 36px; height: 36px; border-radius: 999px;
+        display: grid; place-items: center;
+        background: rgba(18,47,24,0.12); color: #122f18; font-weight: 600;
+      }
+      .stepper-dot.active { background: #122f18; color: #faf6f0; }
+      .stepper-dot.done { background: #2d7556; color: #fff; }
+
+      .step { display: none; }
+      .step.active { display: block; animation: fade .25s ease; }
+      @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+      .section-title {
+        font-family: 'Anybody', sans-serif; font-weight: 600;
+        font-size: 28px; color: #122f18; letter-spacing: -0.5px;
+      }
+      .section-sub { color: rgba(26,58,46,0.7); font-size: 15px; margin-top: 4px; }
+      .field-group { margin-bottom: 22px; }
+
+      .toast {
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+        background: #122f18; color: #faf6f0; padding: 14px 20px;
+        border-radius: 10px; font-size: 14px; z-index: 100;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none;
+      }
+      .toast.show { display: block; animation: fade .2s ease; }
+      .toast.error { background: #b91c1c; }
+    </style>
+  </head>
+
+  <body class="text-[#122f18]">
+    <header class="bg-[#122f18] border-b border-black/60">
+      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-[100px] lg:px-20">
+        <a href="/mockup.html" class="flex items-center">
+          <img
+            src="/assets/logo.png"
+            alt="REUNUSA"
+            class="h-9 w-auto max-w-[140px] object-contain object-left sm:h-10 lg:h-12"
+          />
+        </a>
+        <a href="/mockup.html" class="text-sm font-medium text-stone-100 hover:text-yellow-200 sm:text-base">
+          ← Kembali ke Beranda
+        </a>
+      </div>
+    </header>
+
+    <section class="px-5 py-10 text-center sm:py-14 lg:py-16">
+      <div class="mx-auto max-w-4xl">
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-[#122f18] sm:text-4xl lg:text-5xl">
+          Ambil Tiket Reuni Nusantara Anda
+        </h1>
+        <p class="mt-3 text-base text-[#1e2a20] sm:text-lg lg:text-xl">
+          Mari kembali pulang, mengenang bersama 28 angkatan Pondok Pesantren Husnul Khotimah.
+        </p>
+      </div>
+    </section>
+
+    <section class="px-4 pb-20 sm:px-6">
+      <div
+        class="mx-auto w-full max-w-3xl rounded-[20px] bg-[#faf6f0] p-5 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.25)] sm:p-8 lg:p-10"
+      >
+        <div class="mb-8 flex items-center gap-3">
+          <div id="dot-1" class="stepper-dot active">1</div>
+          <div id="line-1" class="stepper-line"></div>
+          <div id="dot-2" class="stepper-dot">2</div>
+          <div id="line-2" class="stepper-line"></div>
+          <div id="dot-3" class="stepper-dot">3</div>
+        </div>
+
+        <form id="regForm" novalidate>
+          <!-- ============ STEP 1 ============ -->
+          <div class="step active" data-step="1">
+            <div class="mb-6">
+              <h2 class="section-title">Data Diri</h2>
+              <p class="section-sub">Lengkapi identitas Anda sebagai alumni.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="namaLengkap">Nama Lengkap</label>
+              <input
+                id="namaLengkap"
+                name="namaLengkap"
+                type="text"
+                class="input-base"
+                placeholder="Nama Anda"
+                required
+              />
+              <p class="field-error" data-error-for="namaLengkap">Nama lengkap wajib diisi.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="angkatan">Angkatan Islah</label>
+              <select id="angkatan" name="angkatan" class="input-base" required>
+                <option value="">Pilih Angkatan Anda</option>
+              </select>
+              <p class="field-error" data-error-for="angkatan">Pilih angkatan Anda.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="domisili">Domisili</label>
+              <input
+                id="domisili"
+                name="domisili"
+                type="text"
+                class="input-base"
+                placeholder="Contoh: Surakarta, Jawa Tengah"
+                required
+              />
+              <p class="field-error" data-error-for="domisili">Domisili wajib diisi.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="wa">Nomor WhatsApp Aktif</label>
+              <input id="wa" name="wa" type="tel" class="input-base" placeholder="+62 812 3456 7890" required />
+              <p class="field-error" data-error-for="wa">Nomor WhatsApp tidak valid (10–15 digit).</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="email">Email</label>
+              <input id="email" name="email" type="email" class="input-base" placeholder="nama@email.com" required />
+              <p class="field-error" data-error-for="email">Format email tidak valid.</p>
+              <p id="emailCheckStatus" class="mt-2 hidden text-sm text-[rgba(26,58,46,0.6)]">
+                <span
+                  class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#122f18] border-t-transparent align-middle"
+                ></span>
+                Memeriksa data donasi...
+              </p>
+              <div
+                id="emailVerifiedBadge"
+                class="mt-2 hidden items-center gap-2 rounded-md bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 ring-1 ring-emerald-200"
+              >
+                <svg viewBox="0 0 24 24" class="h-5 w-5 text-emerald-600" fill="none">
+                  <path
+                    d="M5 12l4 4L19 7"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                <span>Email terverifikasi sudah berdonasi!</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Pekerjaan / Kesibukan saat ini</span>
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4" data-radio-group="pekerjaan"></div>
+              <div id="pekerjaanLainnyaWrap" class="mt-3 hidden">
+                <input id="pekerjaanLainnya" type="text" class="input-base" placeholder="Tuliskan pekerjaan Anda" />
+              </div>
+              <p class="field-error" data-error-for="pekerjaan">Pilih salah satu pekerjaan / kesibukan.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="instansi">Instansi / Universitas</label>
+              <input
+                id="instansi"
+                name="instansi"
+                type="text"
+                class="input-base"
+                placeholder="Nama instansi atau universitas"
+              />
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Mengetahui informasi Reunusa 2026 dari mana?</span>
+              <div class="grid grid-cols-1 gap-1 sm:grid-cols-2" data-plain-radio-group="sumberInfo"></div>
+              <div id="sumberInfoLainnyaWrap" class="mt-3 hidden">
+                <input
+                  id="sumberInfoLainnya"
+                  type="text"
+                  class="input-base"
+                  placeholder="Tuliskan sumber informasi Anda"
+                />
+              </div>
+              <p class="field-error" data-error-for="sumberInfo">Pilih salah satu sumber informasi.</p>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+              <button type="button" class="btn-primary" data-next>
+                Lanjut ke Pendaftaran Event
+                <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none">
+                  <path
+                    d="M3 8h10m0 0-4-4m4 4-4 4"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============ STEP 2 ============ -->
+          <div class="step" data-step="2">
+            <div class="mb-6">
+              <h2 class="section-title">Pendaftaran Pre-Event &amp; Main Event</h2>
+              <p class="section-sub">Pilih sesi dan opsi kehadiran Anda di Reunusa 2026.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Mendaftar Sambut Reunusa? <span class="field-sub">(Pre-Event)</span></span>
+              <p class="field-hint mb-3">Zoom lintas sektor dan lintas generasi, 5 Juli 2026, via Zoom.</p>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-radio-group="preEvent"></div>
+              <p class="field-error" data-error-for="preEvent">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group sektor-wrap disabled" id="sektorWrap">
+              <span class="field-label">Jika iya, sesi dari sektor apa yang diminati?</span>
+              <p class="field-hint mb-3">Bagian ini aktif setelah memilih "Ya" di atas.</p>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-check-group="sektor"></div>
+              <p class="field-error" data-error-for="sektor">Pilih minimal satu sektor.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Mendaftar Main Event Reunusa?</span>
+              <p class="field-hint mb-3">Pondok Pesantren Husnul Khotimah.</p>
+              <div class="grid grid-cols-1 gap-2" data-radio-group="mainEvent"></div>
+              <p class="field-error" data-error-for="mainEvent">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label"
+                >Apabila Reunusa menyediakan fasilitas penginapan di dalam pondok, apakah berminat?</span
+              >
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-radio-group="penginapan"></div>
+              <p class="field-error" data-error-for="penginapan">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Apakah anda menggunakan kendaraan pribadi ke Reunusa?</span>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-radio-group="transportasi"></div>
+              <p class="field-error" data-error-for="transportasi">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label"
+                >Apabila Reunusa menyediakan fasilitas transportasi pulang pergi bersama, apakah berminat?</span
+              >
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-radio-group="transportasiPP"></div>
+              <p class="field-error" data-error-for="transportasiPP">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group">
+              <span class="field-label">Apakah berencana membawa keluarga ke Reunusa?</span>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-radio-group="bawaKeluarga"></div>
+              <p class="field-error" data-error-for="bawaKeluarga">Pilih salah satu.</p>
+            </div>
+
+            <div class="field-group hidden" id="jumlahKeluargaWrap">
+              <label class="field-label" for="jumlahKeluarga">Berapa jumlah anggota keluarga yang ingin dibawa?</label>
+              <input
+                id="jumlahKeluarga"
+                name="jumlahKeluarga"
+                type="number"
+                min="1"
+                class="input-base"
+                placeholder="Contoh: 3"
+              />
+              <p class="field-error" data-error-for="jumlahKeluarga">Masukkan jumlah anggota keluarga.</p>
+            </div>
+
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <button type="button" class="btn-secondary" data-prev>← Kembali</button>
+              <button type="button" class="btn-primary" data-next>
+                Lanjut ke Kontribusi
+                <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none">
+                  <path
+                    d="M3 8h10m0 0-4-4m4 4-4 4"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============ STEP 3 ============ -->
+          <div class="step" data-step="3">
+            <div class="mb-6">
+              <h2 class="section-title">Dana Kontribusi</h2>
+              <p class="section-sub">Tentukan kontribusi dan opsi merchandise Anda.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="nominal">Nominal Dana Kontribusi</label>
+              <p class="field-hint mb-3">Semua kegiatan di Reunusa 2026, Pay As You Wish. (Bayar seikhlasnya)</p>
+              <input
+                id="nominal"
+                name="nominal"
+                type="text"
+                inputmode="numeric"
+                class="input-base"
+                placeholder="Rp 10.000"
+              />
+              <p class="field-hint">Min. Rp10.000 untuk memenuhi batas minimum transaksi pada sistem pembayaran.</p>
+              <p class="field-hint" style="color:#1e2a20;">Jika Anda pernah berdonasi sebelumnya, silahkan isi dengan nominal minimal 0 rupiah.</p>
+              <p id="nominalDonorHint" class="field-hint hidden" style="color:#0e7c46;font-weight:500;">Gratis karena Anda sudah berdonasi 🎉</p>
+              <p class="field-error" data-error-for="nominal">Nominal minimum Rp 10.000.</p>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="kodeReferensi">Nomor Referensi</label>
+              <p class="field-hint mb-3">
+                Kode referensi resmi dari angkatan Anda untuk memvalidasi keanggotaan alumni.
+              </p>
+              <input
+                id="kodeReferensi"
+                name="kodeReferensi"
+                type="text"
+                class="input-base uppercase"
+                placeholder="Masukkan kode referensi angkatan"
+                style="text-transform: uppercase;"
+                required
+              />
+              <p class="field-error" data-error-for="kodeReferensi">Kode referensi wajib diisi.</p>
+            </div>
+
+            <div class="field-group" hidden>
+              <span class="field-label">Apakah ingin membeli merchandise Reunusa?</span>
+              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2" data-check-group="merchandise"></div>
+            </div>
+
+            <!-- ============ Pembayaran Manual ============ -->
+            <div id="manualPaymentBlock" class="field-group" style="margin-top:24px;padding:18px;border:1px solid rgba(45,117,86,0.25);border-radius:14px;background:#fff;">
+              <h3 class="section-title" style="margin-bottom:6px;">Pembayaran Manual</h3>
+              <p class="field-hint" style="margin-bottom:6px;">Setelah Anda klik tombol pembayaran di bawah, akan muncul pop-up berisi <strong>QRIS</strong> dan kolom unggah bukti pembayaran.</p>
+              <p class="field-hint">Apabila halaman tertutup sebelum bukti diunggah, Anda tetap bisa mengunggahnya kapan saja melalui menu <strong>“Cari Tiket Saya”</strong> di halaman utama.</p>
+              <button type="button" id="reopenQrisBtn" class="btn-secondary hidden" style="margin-top:14px;height:48px;width:100%;">
+                Buka Kembali QRIS &amp; Upload Bukti
+              </button>
+            </div>
+
+            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+              <button type="button" class="btn-secondary" data-prev>← Kembali</button>
+              <button type="submit" id="submitBtn" class="btn-primary">
+                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+                  <path
+                    d="M4 7h16M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"
+                    stroke="currentColor"
+                    stroke-width="1.6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+                LANJUT KE PEMBAYARAN
+              </button>
+            </div>
+
+            <p class="mt-6 text-center text-sm text-[#1e2a20]">
+              🔒 Pendaftaran Anda akan diverifikasi panitia setelah bukti pembayaran kami terima.
+            </p>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <footer class="bg-[#1e2a20] px-5 py-10 text-stone-100 sm:px-8 sm:py-12 lg:px-24">
+      <div class="mx-auto max-w-7xl">
+        <div class="flex flex-col gap-3">
+          <img
+            src="/assets/logo.png"
+            alt="REUNUSA"
+            class="h-12 w-auto max-w-[160px] object-contain object-left sm:h-14 lg:h-16"
+          />
+          <p class="text-lg font-semibold text-[#f4f6f4] sm:text-xl">Reuni Nusantara</p>
+          <p class="max-w-md text-sm text-[#f4f6f4]/90">
+            Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan Jawa Barat 45554.
+          </p>
+        </div>
+
+        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Navigasi Halaman</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="/mockup.html#beranda" class="hover:text-yellow-200">Beranda</a></li>
+              <li><a href="/mockup.html#peringkat" class="hover:text-yellow-200">Leaderboard</a></li>
+              <li><a href="/mockup.html#detail" class="hover:text-yellow-200">Detail Acara</a></li>
+              <li><a href="/mockup.html#faq" class="hover:text-yellow-200">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Aksi Utama</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="/register.html" class="hover:text-yellow-200">Daftar</a></li>
+              <li><a href="/mockup.html#cari" class="hover:text-yellow-200">Cari Tiket</a></li>
+            </ul>
+          </div>
+
+          <div class="sm:col-span-2 lg:col-span-1">
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Hubungi Panitia</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla (Akhwat)</a></li>
+              <li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal (Ikhwan)</a></li>
+              <li><a href="https://instagram.com/reunusa.islah" target="_blank" rel="noopener" class="hover:text-yellow-200">Instagram @reunusa.islah</a></li>
+              <li><a href="mailto:reunusaislah@gmail.com" class="hover:text-yellow-200">reunusaislah@gmail.com</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <hr class="my-6 border-white/15 sm:my-8" />
+
+        <div
+          class="flex flex-col gap-2 text-center text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between sm:text-left"
+        >
+          <p>© 2026 REUNUSA. Hak Cipta Dilindungi Undang-Undang.</p>
+          <p>Dibuat dengan rasa rindu oleh Tim Panitia.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- ============ POPUP: QRIS + Upload Bukti Bayar ============ -->
+    <div id="qrisModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
+      <div style="background:#faf6f0;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,0.35);position:relative;font-family:'Alexandria',sans-serif;">
+        <button type="button" id="qrisCloseBtn" aria-label="Tutup" style="position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:#122f18;font-size:24px;line-height:1;">×</button>
+        <h3 class="section-title" style="margin-bottom:4px;">Pembayaran via QRIS</h3>
+        <p class="field-hint" id="qrisCodeNote" style="margin-bottom:14px;">Pendaftaran Anda tersimpan. Scan QRIS di bawah lalu unggah bukti pembayaran.</p>
+        <div style="text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(45,117,86,0.25);padding:12px;">
+          <img src="/assets/qris-reunusa.jpeg" alt="QRIS Reunusa" style="max-width:100%;width:320px;height:auto;display:block;margin:0 auto;border-radius:10px;" />
+        </div>
+        <div style="margin-top:14px;background:#fff;border:1px solid rgba(45,117,86,0.25);border-radius:10px;padding:12px;font-size:14px;color:#1e2a20;">
+          Atau transfer <strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong>.
+        </div>
+        <div style="margin-top:10px;background:#fff7ed;border:1px solid #fdba74;color:#7c2d12;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;">
+          ⚠️ Saat ini fitur payment gateway masih dalam proses pengembangan, silahkan memakai QRIS dan upload bukti transfer Anda.
+        </div>
+        <div class="field-group" style="margin-top:18px;">
+          <label class="field-label" for="qrisBukti">Upload Bukti Pembayaran <span style="color:#b91c1c">*</span></label>
+          <p class="field-hint" style="margin-bottom:8px;">Format JPG/PNG, maks. 5MB.</p>
+          <input id="qrisBukti" type="file" accept="image/*" class="input-base" style="padding:10px 12px;height:auto;" />
+          <p id="qrisError" class="field-error">Bukti pembayaran wajib diunggah (gambar, maks 5MB).</p>
+        </div>
+        <button type="button" id="qrisUploadBtn" class="btn-primary" style="width:100%;">
+          KIRIM BUKTI &amp; SELESAI
+        </button>
+        <p style="margin-top:12px;font-size:13px;color:rgba(26,58,46,0.7);text-align:center;">
+          Tutup pop-up ini? Anda tetap bisa mengunggah bukti nanti via <strong>"Cari Tiket Saya"</strong>.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // ====== Supabase ======
+      const SUPABASE_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // ====== Donor verification state (set by email check) ======
+      let donorVerified = false;
+      let donorEmail = '';
+
+      const emailInput = document.getElementById('email');
+      const emailStatus = document.getElementById('emailCheckStatus');
+      const emailBadge = document.getElementById('emailVerifiedBadge');
+      const nominalInputForLock = () => document.getElementById('nominal');
+
+      function setDonorState(verified, email) {
+        donorVerified = verified;
+        donorEmail = verified ? email : '';
+        emailBadge.classList.toggle('hidden', !verified);
+        emailBadge.classList.toggle('flex', verified);
+        const nom = nominalInputForLock();
+        if (nom) {
+          if (verified) {
+            nom.value = '0';
+            nom.disabled = true;
+            nom.classList.remove('invalid');
+            nom.placeholder = 'Gratis — Anda telah berdonasi';
+          } else {
+            nom.disabled = false;
+            nom.placeholder = 'Rp 10.000';
+            if (nom.value === '0') nom.value = '';
+          }
+        }
+        const hint = document.getElementById('nominalDonorHint');
+        if (hint) hint.classList.toggle('hidden', !verified);
+      }
+
+      let emailCheckSeq = 0;
+      async function checkDonorEmail() {
+        const raw = emailInput.value.trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) {
+          setDonorState(false, '');
+          emailStatus.classList.add('hidden');
+          return;
+        }
+        const seq = ++emailCheckSeq;
+        emailStatus.classList.remove('hidden');
+        emailBadge.classList.add('hidden');
+        emailBadge.classList.remove('flex');
+
+        // 1) Primary: RPC (server-side check)
+        let verified = false;
+        try {
+          const { data, error } = await sb.rpc('check_donor_verified', { _email: raw });
+          if (!error && data) verified = true;
+        } catch (e) { console.warn('RPC check_donor_verified gagal:', e); }
+
+        // 2) Fallback: cek langsung tabel donations (tanpa filter status,
+        //    yang penting email pernah berdonasi dengan amount > 0).
+        if (!verified) {
+          try {
+            const { data: rows, error: selErr } = await sb
+              .from('donations')
+              .select('id, amount, payment_status')
+              .ilike('donor_email', raw)
+              .limit(5);
+            if (!selErr && Array.isArray(rows) && rows.length > 0) {
+              const hasAny = rows.some(r => Number(r.amount) > 0);
+              if (hasAny) verified = true;
+            }
+          } catch (e) { console.warn('Fallback donations check gagal:', e); }
+        }
+
+        if (seq !== emailCheckSeq) return; // ignore stale
+        emailStatus.classList.add('hidden');
+        setDonorState(verified, raw);
+      }
+      emailInput.addEventListener('blur', checkDonorEmail);
+      emailInput.addEventListener('change', checkDonorEmail);
+
+      // ====== Opsi ======
+      const opts = {
+        pekerjaan: ['Wiraswasta', 'Wirausaha', 'PNS', 'Akademisi', 'Freelance', 'Lainnya'],
+        sumberInfo: ['Instagram @reunusa.islah', 'Facebook Reunusa Islah', 'Group WhatsApp',
+          'Personal Chat WhatsApp', 'Teman', 'Lainnya'],
+        preEvent: ['Ya', 'Tidak'],
+        sektor: ['Bisnis & Entrepreneur', 'Keuangan & Akuntansi', 'Hukum', 'Pemerintahan',
+          'HR & Pengembangan SDM', 'Sosial & NGO', 'Media & Komunikasi', 'Akademisi',
+          'Pendidikan & Dakwah', 'Karier Global', 'Kreatif & Desain', 'Teknologi & IT',
+          'Teknik & Engineering', 'Kesehatan', 'Pertanian & Agrikultur'],
+        mainEvent: ['Iya', 'Tidak', 'Dipastikan kembali di pendaftaran Batch 2 (6 Juli)'],
+        penginapan: ['Iya', 'Tidak'],
+        transportasi: ['Iya', 'Tidak'],
+        transportasiPP: ['Iya', 'Tidak'],
+        bawaKeluarga: ['Iya', 'Tidak'],
+        merchandise: ['Tumbler', 'Tote Bag', 'Sticker A5', 'Sticker Satuan',
+          'Topi', 'Paket Bundling 1', 'Tidak membeli merchandise'],
+      };
+
+      // Angkatan 1..28
+      const sel = document.getElementById('angkatan');
+      for (let i = 1; i <= 28; i++) {
+        const o = document.createElement('option');
+        o.value = `Islah ${i}`; o.textContent = `Islah ${i}`;
+        sel.appendChild(o);
+      }
+
+      // Render card-style radios
+      document.querySelectorAll('[data-radio-group]').forEach((host) => {
+        const name = host.dataset.radioGroup;
+        opts[name].forEach((label, idx) => {
+          const id = `${name}-${idx}`;
+          host.insertAdjacentHTML('beforeend', `
+            <input type="radio" name="${name}" id="${id}" value="${label}" />
+            <label class="radio-card" for="${id}">
+              <span class="radio-dot"></span>
+              <span class="text-[15px] font-medium text-[#122f18]">${label}</span>
+            </label>
+          `);
+        });
+      });
+
+      // Render plain-style radios (no frame)
+      document.querySelectorAll('[data-plain-radio-group]').forEach((host) => {
+        const name = host.dataset.plainRadioGroup;
+        opts[name].forEach((label, idx) => {
+          const id = `${name}-${idx}`;
+          host.insertAdjacentHTML('beforeend', `
+            <input type="radio" name="${name}" id="${id}" value="${label}" />
+            <label class="radio-plain" for="${id}">
+              <span class="radio-dot"></span>
+              <span class="text-[15px] text-[#122f18]">${label}</span>
+            </label>
+          `);
+        });
+      });
+
+      // Render checkboxes
+      document.querySelectorAll('[data-check-group]').forEach((host) => {
+        const name = host.dataset.checkGroup;
+        opts[name].forEach((label, idx) => {
+          const id = `${name}-${idx}`;
+          host.insertAdjacentHTML('beforeend', `
+            <input type="checkbox" name="${name}" id="${id}" value="${label}" />
+            <label class="check-card" for="${id}">
+              <span class="check-box"></span>
+              <span class="text-[15px] font-medium text-[#122f18]">${label}</span>
+            </label>
+          `);
+        });
+      });
+
+      // ====== Show "Lainnya" input for pekerjaan ======
+      const pekLainnyaWrap = document.getElementById('pekerjaanLainnyaWrap');
+      document.querySelectorAll('input[name="pekerjaan"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          pekLainnyaWrap.classList.toggle('hidden', r.value !== 'Lainnya' || !r.checked);
+        });
+      });
+
+      // ====== Sektor wrap toggle based on preEvent ======
+      const sektorWrap = document.getElementById('sektorWrap');
+      document.querySelectorAll('input[name="preEvent"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          const yes = document.querySelector('input[name="preEvent"]:checked')?.value === 'Ya';
+          sektorWrap.classList.toggle('disabled', !yes);
+          if (!yes) {
+            document.querySelectorAll('input[name="sektor"]').forEach((c) => (c.checked = false));
+          }
+        });
+      });
+
+      // ====== Show "Lainnya" input for sumberInfo ======
+      const sumberLainnyaWrap = document.getElementById('sumberInfoLainnyaWrap');
+      document.querySelectorAll('input[name="sumberInfo"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          const v = document.querySelector('input[name="sumberInfo"]:checked')?.value;
+          sumberLainnyaWrap.classList.toggle('hidden', v !== 'Lainnya');
+        });
+      });
+
+      // ====== Toggle jumlahKeluarga based on bawaKeluarga ======
+      const jumlahKeluargaWrap = document.getElementById('jumlahKeluargaWrap');
+      const jumlahKeluargaInput = document.getElementById('jumlahKeluarga');
+      document.querySelectorAll('input[name="bawaKeluarga"]').forEach((r) => {
+        r.addEventListener('change', () => {
+          const yes = document.querySelector('input[name="bawaKeluarga"]:checked')?.value === 'Iya';
+          jumlahKeluargaWrap.classList.toggle('hidden', !yes);
+          if (!yes) { jumlahKeluargaInput.value = ''; jumlahKeluargaInput.classList.remove('invalid'); }
+        });
+      });
+
+
+      // ====== Toast ======
+      const toast = document.getElementById('toast');
+      let toastTimer;
+      function showToast(msg, isError = false) {
+        clearTimeout(toastTimer);
+        toast.textContent = msg;
+        toast.classList.toggle('error', isError);
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
+      }
+
+      // ====== Validation helpers ======
+      function setErr(name, show) {
+        const el = document.querySelector(`[data-error-for="${name}"]`);
+        if (el) el.classList.toggle('show', show);
+        const input = document.getElementById(name);
+        if (input) input.classList.toggle('invalid', show);
+      }
+      function getRadio(name) {
+        return document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+      }
+      function getChecks(name) {
+        return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((c) => c.value);
+      }
+      function isValidEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()); }
+      function isValidPhone(v) {
+        const digits = v.replace(/\D/g, '');
+        return digits.length >= 10 && digits.length <= 15;
+      }
+
+      function validateStep1() {
+        let ok = true;
+        const fields = ['namaLengkap', 'angkatan', 'domisili'];
+        fields.forEach((f) => {
+          const v = document.getElementById(f).value.trim();
+          const bad = !v;
+          setErr(f, bad); if (bad) ok = false;
+        });
+        const wa = document.getElementById('wa').value;
+        const waBad = !isValidPhone(wa); setErr('wa', waBad); if (waBad) ok = false;
+
+        const em = document.getElementById('email').value;
+        const emBad = !isValidEmail(em); setErr('email', emBad); if (emBad) ok = false;
+
+        const pek = getRadio('pekerjaan');
+        const pekBad = !pek; setErr('pekerjaan', pekBad); if (pekBad) ok = false;
+        if (pek === 'Lainnya') {
+          const v = document.getElementById('pekerjaanLainnya').value.trim();
+          if (!v) {
+            document.getElementById('pekerjaanLainnya').classList.add('invalid');
+            ok = false;
+          } else {
+            document.getElementById('pekerjaanLainnya').classList.remove('invalid');
+          }
+        }
+
+        const sumber = getRadio('sumberInfo');
+        const sumberBad = !sumber; setErr('sumberInfo', sumberBad); if (sumberBad) ok = false;
+        if (sumber === 'Lainnya') {
+          const v = document.getElementById('sumberInfoLainnya').value.trim();
+          const bad = !v;
+          document.getElementById('sumberInfoLainnya').classList.toggle('invalid', bad);
+          if (bad) ok = false;
+        }
+        return ok;
+      }
+
+      function validateStep2() {
+        let ok = true;
+        const groups = ['preEvent', 'mainEvent', 'penginapan', 'transportasi', 'transportasiPP', 'bawaKeluarga'];
+        groups.forEach((g) => {
+          const bad = !getRadio(g);
+          setErr(g, bad); if (bad) ok = false;
+        });
+        if (getRadio('preEvent') === 'Ya') {
+          const bad = getChecks('sektor').length === 0;
+          setErr('sektor', bad); if (bad) ok = false;
+        } else {
+          setErr('sektor', false);
+        }
+        if (getRadio('bawaKeluarga') === 'Iya') {
+          const v = Number(document.getElementById('jumlahKeluarga').value);
+          const bad = !v || v < 1;
+          setErr('jumlahKeluarga', bad);
+          document.getElementById('jumlahKeluarga').classList.toggle('invalid', bad);
+          if (bad) ok = false;
+        } else {
+          setErr('jumlahKeluarga', false);
+          document.getElementById('jumlahKeluarga').classList.remove('invalid');
+        }
+        return ok;
+      }
+
+      function validateStep3() {
+        const raw = document.getElementById('nominal').value.replace(/\D/g, '');
+        const n = Number(raw || 0);
+        const ikutMainEvent = getRadio('mainEvent') === 'Iya';
+        // Verified donors bypass entirely. Non-verified: wajib >= 10.000 hanya jika ikut Main Event.
+        let bad = false;
+        if (!donorVerified && ikutMainEvent) {
+          bad = n < 10000;
+        }
+        setErr('nominal', bad);
+        const kode = document.getElementById('kodeReferensi').value.trim();
+        const badKode = !kode;
+        setErr('kodeReferensi', badKode);
+        return !bad && !badKode;
+      }
+
+      async function verifyReferralCode(angkatan, kode) {
+        const normalized = (kode || '').trim().toUpperCase();
+        if (!angkatan || !normalized) return false;
+        // Try RPC first (preferred, case-insensitive on server side)
+        const rpc = await sb.rpc('verify_referral', { _angkatan: angkatan, _kode: normalized });
+        if (!rpc.error) return !!rpc.data;
+        // Fallback: direct table lookup (works even if RPC isn't deployed/cached)
+        const { data, error } = await sb
+          .from('master_referral')
+          .select('kode_referral')
+          .eq('angkatan', angkatan)
+          .ilike('kode_referral', normalized)
+          .limit(1);
+        if (error) {
+          console.error('[verifyReferralCode] fallback error', error);
+          return false;
+        }
+        return Array.isArray(data) && data.length > 0;
+      }
+
+
+      // ====== Wizard ======
+      let current = 1;
+      const steps = document.querySelectorAll('.step');
+      function goTo(n) {
+        current = Math.max(1, Math.min(3, n));
+        steps.forEach((s) => s.classList.toggle('active', Number(s.dataset.step) === current));
+        for (let i = 1; i <= 3; i++) {
+          const dot = document.getElementById(`dot-${i}`);
+          dot.classList.remove('active', 'done');
+          if (i < current) dot.classList.add('done');
+          else if (i === current) dot.classList.add('active');
+        }
+        document.getElementById('line-1').classList.toggle('active', current >= 2);
+        document.getElementById('line-2').classList.toggle('active', current >= 3);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      document.querySelectorAll('[data-next]').forEach((b) =>
+        b.addEventListener('click', () => {
+          let ok = true;
+          if (current === 1) ok = validateStep1();
+          else if (current === 2) ok = validateStep2();
+          if (!ok) { showToast('Lengkapi data yang ditandai sebelum melanjutkan.', true); return; }
+          goTo(current + 1);
+        })
+      );
+      document.querySelectorAll('[data-prev]').forEach((b) => b.addEventListener('click', () => goTo(current - 1)));
+
+      // ====== Submit -> Supabase ======
+      document.getElementById('regForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateStep1()) { goTo(1); showToast('Periksa data diri Anda.', true); return; }
+        if (!validateStep2()) { goTo(2); showToast('Periksa pendaftaran event.', true); return; }
+        if (!validateStep3()) { showToast('Lengkapi nominal dan kode referensi.', true); return; }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Memvalidasi kode...';
+
+        const angkatanVal = document.getElementById('angkatan').value;
+        const kodeRefVal = document.getElementById('kodeReferensi').value.trim().toUpperCase();
+        document.getElementById('kodeReferensi').value = kodeRefVal;
+
+        const valid = await verifyReferralCode(angkatanVal, kodeRefVal);
+        if (!valid) {
+          setErr('kodeReferensi', true);
+          showToast('Kode referensi tidak valid untuk angkatan yang dipilih. Silakan periksa kembali.', true);
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+
+        // ====== Cek duplikat email ======
+        btn.innerHTML = 'Memeriksa email...';
+        const emailVal = document.getElementById('email').value.trim().toLowerCase();
+        try {
+          const { data: dup, error: dupErr } = await sb
+            .from('registrations')
+            .select('registration_code, payment_status')
+            .ilike('email', emailVal)
+            .limit(1);
+          if (!dupErr && Array.isArray(dup) && dup.length > 0) {
+            setErr('email', true);
+            alert('Anda sudah mendaftar, jika belum payment silahkan selesaikan.');
+            showToast('Email sudah terdaftar. Selesaikan pembayaran via "Cari Tiket Saya".', true);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            goTo(1);
+            return;
+          }
+        } catch (e) {
+          console.warn('Cek duplikat email gagal (lanjut):', e);
+        }
+
+        btn.innerHTML = 'Mengirim...';
+
+
+        const pekValue = getRadio('pekerjaan') === 'Lainnya'
+          ? document.getElementById('pekerjaanLainnya').value.trim()
+          : getRadio('pekerjaan');
+
+        // Single unified code (Registration ID == Donation ID).
+        function genCode() {
+          const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+          let s = '';
+          for (let i = 0; i < 6; i++) s += alphabet[Math.floor(Math.random() * alphabet.length)];
+          return 'RNS-' + s;
+        }
+        const regCode = genCode();
+
+        // Bukti pembayaran diunggah lewat popup QRIS setelah pendaftaran tersimpan.
+        const proofUrl = null;
+
+        const payload = {
+          full_name: document.getElementById('namaLengkap').value.trim(),
+          angkatan_islah: document.getElementById('angkatan').value,
+          domisili: document.getElementById('domisili').value.trim(),
+          phone_number: document.getElementById('wa').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          pekerjaan: pekValue,
+          instansi: document.getElementById('instansi').value.trim(),
+          info_source: [getRadio('sumberInfo') === 'Lainnya'
+            ? document.getElementById('sumberInfoLainnya').value.trim()
+            : getRadio('sumberInfo')],
+          pre_event: getRadio('preEvent') === 'Ya',
+          pre_event_sectors: getRadio('preEvent') === 'Ya' ? getChecks('sektor') : [],
+          main_event: getRadio('mainEvent'),
+          minat_penginapan: getRadio('penginapan') === 'Iya',
+          transportasi_ke_reunusa: getRadio('transportasi'),
+          minat_transportasi_bersama: getRadio('transportasiPP') === 'Iya',
+          bawa_keluarga: getRadio('bawaKeluarga') === 'Iya',
+          jumlah_keluarga: getRadio('bawaKeluarga') === 'Iya'
+            ? document.getElementById('jumlahKeluarga').value.trim()
+            : '',
+          dana_kontribusi: donorVerified ? 0 : Number(document.getElementById('nominal').value.replace(/\D/g, '') || 0),
+          merchandise: getChecks('merchandise'),
+          payment_method: donorVerified ? 'donation_verified' : 'manual_transfer',
+          payment_status: donorVerified ? 'Success' : 'Pending',
+          registration_code: regCode,
+          kode_referensi: kodeRefVal,
+          payment_proof_url: proofUrl,
+        };
+
+
+        btn.innerHTML = 'Menyimpan pendaftaran...';
+        // Insert registration. Status default = Pending sampai panitia verifikasi.
+        const { error } = await sb.from('registrations').insert(payload);
+        if (error) {
+          console.error(error);
+          showToast('Gagal menyimpan: ' + error.message, true);
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          return;
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (donorVerified) {
+          showToast('Pendaftaran berhasil! Mengarahkan ke halaman tiket...');
+          setTimeout(() => {
+            window.location.href = '/ticket.html?code=' + encodeURIComponent(regCode);
+          }, 900);
+          return;
+        }
+
+        // Buka popup QRIS + upload bukti
+        openQrisModal(regCode, kodeRefVal);
+      });
+
+      // ====== QRIS Modal Logic ======
+      const qrisModal = document.getElementById('qrisModal');
+      const qrisCloseBtn = document.getElementById('qrisCloseBtn');
+      const qrisUploadBtn = document.getElementById('qrisUploadBtn');
+      const qrisBukti = document.getElementById('qrisBukti');
+      const qrisError = document.getElementById('qrisError');
+      const qrisCodeNote = document.getElementById('qrisCodeNote');
+      let pendingRegCode = null;
+      let pendingKodeRef = null;
+
+      function openQrisModal(regCode, kodeRef) {
+        pendingRegCode = regCode;
+        pendingKodeRef = kodeRef;
+        qrisCodeNote.innerHTML = `Kode tiket Anda: <strong>${regCode}</strong>. Simpan kode ini. Scan QRIS lalu unggah bukti pembayaran.`;
+        qrisError.classList.remove('show');
+        qrisBukti.value = '';
+        qrisModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        try {
+          localStorage.setItem('reunusa_pending_payment', JSON.stringify({ regCode, kodeRef, ts: Date.now() }));
+        } catch (_) {}
+        document.getElementById('reopenQrisBtn').classList.remove('hidden');
+      }
+      function closeQrisModal() {
+        qrisModal.style.display = 'none';
+        document.body.style.overflow = '';
+        // JANGAN auto-redirect. Pendaftaran tetap tersimpan; user bisa membuka pop-up lagi
+        // lewat tombol "Buka Kembali QRIS & Upload Bukti" atau via menu Cari Tiket.
+        if (pendingRegCode) {
+          showToast('Pendaftaran tersimpan (kode: ' + pendingRegCode + '). Unggah bukti kapan saja.');
+        }
+      }
+      qrisCloseBtn.addEventListener('click', closeQrisModal);
+      qrisModal.addEventListener('click', (e) => { if (e.target === qrisModal) closeQrisModal(); });
+
+      // Tombol "Buka Kembali QRIS" di halaman register.
+      document.getElementById('reopenQrisBtn').addEventListener('click', () => {
+        if (pendingRegCode) { openQrisModal(pendingRegCode, pendingKodeRef); return; }
+        try {
+          const raw = localStorage.getItem('reunusa_pending_payment');
+          if (raw) {
+            const obj = JSON.parse(raw);
+            if (obj && obj.regCode) openQrisModal(obj.regCode, obj.kodeRef || '');
+          }
+        } catch (_) {}
+      });
+
+      // Restore state setelah refresh/close — TANPA auto-open pop-up.
+      // Hanya menampilkan tombol "Buka Kembali QRIS" agar user bisa membukanya manual.
+      (function restorePending() {
+        try {
+          const raw = localStorage.getItem('reunusa_pending_payment');
+          if (!raw) return;
+          const obj = JSON.parse(raw);
+          if (!obj || !obj.regCode) return;
+          pendingRegCode = obj.regCode;
+          pendingKodeRef = obj.kodeRef || '';
+          document.getElementById('reopenQrisBtn').classList.remove('hidden');
+        } catch (_) {}
+      })();
+
+      qrisUploadBtn.addEventListener('click', async () => {
+        const f = qrisBukti.files && qrisBukti.files[0];
+        const bad = !f || !/^image\//.test(f.type) || f.size > 5 * 1024 * 1024;
+        qrisError.classList.toggle('show', bad);
+        qrisBukti.classList.toggle('invalid', bad);
+        if (bad) return;
+
+        const origLabel = qrisUploadBtn.innerHTML;
+        qrisUploadBtn.disabled = true;
+        qrisUploadBtn.innerHTML = 'Mengunggah bukti...';
+
+        const ext = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+        const path = `${pendingRegCode}-${Date.now()}.${ext}`;
+        const { error: upErr } = await sb.storage
+          .from('receipts')
+          .upload(path, f, { contentType: f.type, upsert: false });
+        if (upErr) {
+          console.error('Upload bukti gagal:', upErr);
+          showToast('Gagal mengunggah bukti: ' + upErr.message, true);
+          qrisUploadBtn.disabled = false;
+          qrisUploadBtn.innerHTML = origLabel;
+          return;
+        }
+        const { data: pub } = sb.storage.from('receipts').getPublicUrl(path);
+        const proofUrl = pub?.publicUrl || null;
+
+        const { error: rpcErr } = await sb.rpc('attach_payment_proof', {
+          _registration_code: pendingRegCode,
+          _kode_referensi: pendingKodeRef,
+          _proof_url: proofUrl,
+        });
+        if (rpcErr) {
+          console.error('Gagal menyimpan URL bukti:', rpcErr);
+          showToast('Gagal menyimpan URL bukti: ' + rpcErr.message, true);
+          qrisUploadBtn.disabled = false;
+          qrisUploadBtn.innerHTML = origLabel;
+          return;
+        }
+
+        showToast('Bukti terkirim! Mengarahkan ke halaman tiket...');
+        const target = '/ticket.html?code=' + encodeURIComponent(pendingRegCode);
+        pendingRegCode = null;
+        try { localStorage.removeItem('reunusa_pending_payment'); } catch (_) {}
+        setTimeout(() => { window.location.href = target; }, 900);
+      });
+    </script>
+
+  </body>
+</html>

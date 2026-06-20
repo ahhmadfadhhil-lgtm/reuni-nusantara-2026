@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     REUNUSA 2026 — Mockup (RESPONSIVE)
+     ============================================================
+     CARA EDIT:
+     1) Ganti gambar di folder: public/assets/
+     2) Ubah teks langsung di antara tag <h1>, <p>, <span>, dst.
+     3) Ubah warna/ukuran dengan mengganti class Tailwind
+     4) File style tambahan: public/mockup.css
+     ============================================================ -->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reunusa — Reuni Akbar Alumni Husnul Khotimah</title>
+    <link rel="icon" type="image/png" href="/assets/pavicon.png" />
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- html2pdf untuk auto-download e-ticket dari pop-up Cari Tiket -->
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
+
+    <!-- Payment Gateway: iPaymu (Sandbox) — redirect flow, no client SDK -->
+
+    <!-- Smooth scroll lembut antar section -->
+    <style>
+      html { scroll-behavior: smooth; }
+    </style>
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/mockup.css" />
+  </head>
+
+  <body class="font-body">
+    <!-- =====================================================
+         HEADER / NAVIGASI (sticky, responsif, hamburger di mobile)
+         ===================================================== -->
+    <header id="siteHeader" class="sticky top-0 z-50 border-b border-white/10 bg-[#122f18]/70 backdrop-blur-md transition-colors duration-300">
+      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-24 lg:px-20">
+        <!-- Logo -->
+        <a href="#beranda" class="flex shrink-0 items-center">
+          <img src="/assets/logo.png" alt="REUNUSA" class="h-9 w-auto max-w-[140px] object-contain object-left sm:h-10 lg:h-12" />
+        </a>
+
+        <!-- Navigasi desktop (lg+) -->
+        <nav class="hidden items-center gap-8 lg:flex">
+          <a href="#beranda" class="text-stone-100 transition hover:text-yellow-200">Beranda</a>
+          <a href="#peringkat" class="text-stone-100 transition hover:text-yellow-200">Papan Peringkat</a>
+          <a href="#detail" class="text-stone-100 transition hover:text-yellow-200">Detail Acara</a>
+          <a href="#faq" class="text-stone-100 transition hover:text-yellow-200">FAQ</a>
+        </nav>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Donasi Terbuka button -->
+          <button
+            type="button"
+            id="openDonasi"
+            class="shadow-sun-glow inline-flex h-10 items-center gap-2 rounded-md bg-yellow-200 px-3 text-xs font-medium text-neutral-800 sm:h-11 sm:px-5 sm:text-base"
+          >
+            Donasi Terbuka
+            <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none">
+              <path
+                d="M3 8h10m0 0-4-4m4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+
+          <!-- Tombol Hamburger (hanya mobile) -->
+          <button
+            id="navToggle"
+            aria-label="Buka menu"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-md text-stone-100 hover:bg-white/10 lg:hidden"
+          >
+            <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer mobile (collapse dengan transisi) -->
+      <div
+        id="mobileNav"
+        class="grid grid-rows-[0fr] overflow-hidden transition-[grid-template-rows] duration-300 ease-out lg:hidden"
+      >
+        <div class="min-h-0">
+          <nav class="flex flex-col gap-1 border-t border-white/10 px-4 py-3">
+            <a href="#beranda" class="rounded-md px-3 py-2 text-stone-100 hover:bg-white/10">Beranda</a>
+            <a href="#peringkat" class="rounded-md px-3 py-2 text-stone-100 hover:bg-white/10">Papan Peringkat</a>
+            <a href="#detail" class="rounded-md px-3 py-2 text-stone-100 hover:bg-white/10">Detail Acara</a>
+            <a href="#faq" class="rounded-md px-3 py-2 text-stone-100 hover:bg-white/10">FAQ</a>
+            <button type="button" id="openDonasiMobile" class="mt-1 rounded-md border border-yellow-200/60 px-3 py-2 text-left text-yellow-100 hover:bg-yellow-200/10">Donasi Sukarela</button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+    <section id="beranda" class="bg-forest-spotlight relative overflow-hidden">
+      <div class="pattern-band green-fade-bottom absolute inset-0 opacity-60"></div>
+
+      <img
+        src="/assets/leaf.png"
+        alt=""
+        class="pointer-events-none absolute -left-10 top-20 hidden h-72 w-72 opacity-50 md:block"
+      />
+      <img
+        src="/assets/leaf.png"
+        alt=""
+        class="pointer-events-none absolute -right-10 top-40 hidden h-72 w-72 -scale-x-100 opacity-50 md:block"
+      />
+
+      <img
+        src="/assets/stamp-maroon.png"
+        alt=""
+        class="pointer-events-none absolute left-2 top-32 hidden h-28 w-auto opacity-90 lg:block"
+      />
+      <img
+        src="/assets/stamp-santri.png"
+        alt=""
+        class="pointer-events-none absolute left-16 top-44 hidden h-32 w-auto opacity-90 lg:block"
+      />
+      <img
+        src="/assets/stamp-monument.png"
+        alt=""
+        class="pointer-events-none absolute left-0 bottom-24 hidden h-32 w-auto opacity-90 lg:block"
+      />
+      <img
+        src="/assets/stamp-masque.png"
+        alt=""
+        class="pointer-events-none absolute right-4 top-40 hidden h-32 w-auto opacity-90 lg:block"
+      />
+      <img
+        src="/assets/stamp-beige.png"
+        alt=""
+        class="pointer-events-none absolute right-2 bottom-20 hidden h-28 w-auto opacity-90 lg:block"
+      />
+      <img
+        src="/assets/stamp-tofu.png"
+        alt=""
+        class="pointer-events-none absolute right-24 bottom-40 hidden h-28 w-auto opacity-90 xl:block"
+      />
+
+      <div class="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-5 py-20 text-center sm:py-24 lg:py-32">
+        <h3 class="text-gradient-hero font-display text-3xl font-semibold leading-tight sm:text-5xl lg:text-7xl">
+          Kembali Bersama, Mengukir Cerita di REUNUSA 2026
+        </h1>
+        <p class="mt-5 max-w-2xl text-sm text-stone-100/90 sm:text-base lg:text-xl">
+          Silaturahmi Akbar 28 Angkatan Alumni. Pastikan angkatanmu hadir dan mendominasi!
+        </p>
+
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <a
+            href="/register.html"
+            class="shadow-sun-glow inline-flex h-11 items-center gap-2 rounded-md bg-yellow-200 px-5 text-sm font-medium text-neutral-800 sm:text-base"
+          >
+            Daftar &amp; Absen Sekarang
+            <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none">
+              <path
+                d="M3 8h10m0 0-4-4m4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+          <button
+            type="button"
+            id="openCariTiket"
+            class="inline-flex h-11 items-center gap-2 rounded-md border border-fuchsia-200 px-5 text-sm font-medium text-fuchsia-200 hover:bg-fuchsia-200/10 sm:text-base"
+          >
+            Cari Tiket Saya
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+              <path
+                d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+              <path d="M13 6v12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPONSOR (kosong) -->
+    <section id="sponsor" class="hidden bg-[#122f18] py-16"></section>
+
+    <!-- =====================================================
+         CHART — Horizontal Bar
+         ===================================================== -->
+    <section id="peringkat" class="pattern-band-2 green-fade-top green-fade-bottom relative py-16 sm:py-20">
+      <div class="relative z-10 mx-auto max-w-5xl px-5">
+        <h2
+          class="font-display text-center text-3xl font-semibold text-stone-100 sm:text-4xl"
+          style="text-shadow:0 4px 10px rgba(0,0,0,0.5);"
+        >
+          Jumlah Pendaftar Saat Ini
+        </h2>
+
+        <!-- Realtime leaderboard rendered by JS (see script at bottom) -->
+        <div id="leaderboardList" class="mt-10 space-y-3">
+          <div class="text-center text-sm text-white/70">Memuat data pendaftar...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         DETAIL ACARA — Card pakai bentuk SVG (event-card.svg)
+         ===================================================== -->
+    <section id="detail" class="relative py-16 sm:py-20">
+      <div class="relative z-10 mx-auto max-w-6xl px-5">
+        <h2
+          class="font-display text-center text-3xl font-semibold text-stone-100 sm:text-4xl"
+          style="text-shadow:0 4px 10px rgba(0,0,0,0.5);"
+        >
+          Detail Acara Reuni Nusantara
+        </h2>
+
+        <div class="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2">
+          <!-- Card 1: Pre Event -->
+          <article class="event-ticket">
+            <!-- gambar bentuk tiket (perangko) jadi background -->
+            <img src="/assets/event-card.svg" alt="" class="event-ticket__bg" />
+            <div class="event-ticket__content">
+              <p class="font-body text-base font-medium text-black">[ Pre-Event ]</p>
+              <h3 class="mt-4 font-display text-3xl font-semibold text-black sm:text-4xl lg:text-5xl">
+                Sambut Reunusa
+              </h3>
+              <hr class="my-5 border-t-2 border-black/70" />
+              <p class="font-body text-xl font-semibold text-black sm:text-2xl">05 Juli 2026</p>
+              <p class="mt-3 font-body text-base font-semibold text-black sm:text-lg">
+                Platform Zoom (Virtual Meeting)
+              </p>
+            </div>
+          </article>
+
+          <!-- Card 2: Main Event -->
+          <article class="event-ticket">
+            <img src="/assets/event-card.svg" alt="" class="event-ticket__bg" />
+            <div class="event-ticket__content">
+              <p class="font-body text-base font-medium text-black">[ Main-Event ]</p>
+              <h3 class="mt-4 font-display text-3xl font-semibold text-black sm:text-3xl lg:text-5xl">
+                Main Event Reunusa
+              </h3>
+              <hr class="my-5 border-t-2 border-black/70" />
+              <p class="font-body text-xl font-semibold text-black sm:text-2xl">25 – 26 Juli 2026</p>
+              <p class="mt-3 font-body text-base font-semibold text-black sm:text-lg">
+                Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan, Jawa Barat
+              </p>
+            </div>
+          </article>
+        </div>
+
+        <div class="mt-10 flex justify-center">
+          <a
+            href="/register.html"
+            class="shadow-sun-glow inline-flex h-11 items-center gap-2 rounded-md bg-yellow-200 px-6 text-sm font-medium text-neutral-800 sm:text-base"
+          >
+            Daftar &amp; Absen Sekarang
+            <svg viewBox="0 0 16 16" class="h-4 w-4" fill="none">
+              <path
+                d="M3 8h10m0 0-4-4m4 4-4 4"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         FAQ — diisi sesuai PDF, accordion responsif
+         ===================================================== -->
+    <section id="faq" class="pattern-band green-fade-top green-fade-bottom relative py-16 sm:py-20">
+      <div class="relative z-10 mx-auto max-w-3xl px-5">
+        <h2
+          class="font-display text-center text-3xl font-semibold text-stone-100 sm:text-4xl"
+          style="text-shadow:0 4px 10px rgba(0,0,0,0.5);"
+        >
+          Pertanyaan yang Sering Diajukan
+        </h2>
+
+        <div class="mt-10 space-y-4">
+          <details class="faq-item" open>
+            <summary>Bagaimana cara mendaftar REUNUSA 2026? <span class="toggle">+</span></summary>
+            <p>
+              Pendaftaran dapat dilakukan dengan mengisi data diri dan memilih Angkatan Islah pada form di website ini,
+              menentukan kategori tiket yang diinginkan, lalu menyelesaikan pembayaran sebelum batas waktu habis agar
+              tiket elektronik Anda dapat langsung diproses oleh sistem.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Apakah satu orang bisa mendaftarkan alumni lain atau keluarga? <span class="toggle">+</span>
+            </summary>
+            <p>
+              Tidak bisa. Satu formulir pendaftaran hanya berlaku untuk satu peserta. Namun apabila membawa keluarga,
+              tersedia kolom pertanyaan khusus pada form pendaftaran.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Siapa saja yang boleh menghadiri Main Event di Pondok Pesantren Husnul Khotimah?
+              <span class="toggle">+</span>
+            </summary>
+            <p>
+              Seluruh alumni Pondok Pesantren Husnul Khotimah Angkatan 1–29 dipersilakan hadir, baik alumni SMA maupun
+              jebolan.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Apakah panitia menyediakan fasilitas penginapan/akomodasi di Kuningan? <span class="toggle">+</span>
+            </summary>
+            <p>Panitia hanya memfasilitasi penginapan di dalam area pondok dengan jumlah yang terbatas.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Apa dresscode (baju) yang harus dikenakan saat Main Event? <span class="toggle">+</span></summary>
+            <p>
+              Peserta diharapkan mengenakan pakaian yang sopan, rapih, dan sesuai nilai-nilai Islam. Untuk akhwat
+              diharapkan menggunakan rok dan kerudung yang menutup aurat.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Berapa harga tiket masuk untuk menghadiri REUNUSA 2026? <span class="toggle">+</span></summary>
+            <p>Seluruh program di REUNUSA 2026 menggunakan sistem Pay As You Wish dalam bentuk dana kontribusi.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Metode pembayaran apa saja yang tersedia? <span class="toggle">+</span></summary>
+            <p>
+              Bank via Virtual Account (BCA, Mandiri, BRI, BNI, dll) serta pembayaran instan via QRIS dan E-Wallet
+              seperti GoPay, OVO, Dana, dan LinkAja.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Saya sudah membayar, tapi kenapa saya belum dapat tiket? <span class="toggle">+</span></summary>
+            <p>
+              Mohon tunggu beberapa saat karena sistem sedang mensinkronisasi data untuk mengirim tiket ke WhatsApp
+              Anda, atau Anda bisa mengunduhnya secara mandiri lewat menu "Cari Tiket" di atas website dengan memasukkan
+              nomor WhatsApp yang didaftarkan.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>
+              Apakah tiket yang sudah dibeli bisa dibatalkan atau di-refund? <span class="toggle">+</span>
+            </summary>
+            <p>
+              Karena seluruh program menggunakan sistem Pay As You Wish dan berbentuk dana kontribusi, pembayaran yang
+              sudah dilakukan tidak dapat dikembalikan.
+            </p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Mengapa metode pembayaran saya terus-menerus gagal? <span class="toggle">+</span></summary>
+            <p>
+              Kegagalan ini biasanya disebabkan karena batas waktu pembayaran (invoice) sudah kedaluwarsa sehingga Anda
+              harus mengulang pendaftaran, adanya gangguan jaringan atau pemeliharaan sistem dari pihak bank/e-wallet,
+              atau nominal yang Anda transfer tidak sesuai hingga digit terakhir.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         FOOTER (sesuai Figma node 43:103)
+         ===================================================== -->
+    <footer class="bg-[#1e2a20] px-5 py-10 text-stone-100 sm:px-8 sm:py-12 lg:px-24">
+      <div class="mx-auto max-w-7xl">
+        <!-- Branding (full-width on mobile) -->
+        <div class="flex flex-col gap-3">
+          <img
+            src="/assets/logo.png"
+            alt="REUNUSA"
+            class="h-12 w-auto max-w-[160px] object-contain object-left sm:h-14 lg:h-16"
+          />
+          <p class="font-body text-lg font-semibold text-[#f4f6f4] sm:text-xl">Reuni Nusantara</p>
+          <p class="max-w-md text-sm text-[#f4f6f4]/90">
+            Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan Jawa Barat 45554.
+          </p>
+        </div>
+
+        <!-- Link groups: 1 col → 2 → 3 -->
+        <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Navigasi Halaman</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="#beranda" class="hover:text-yellow-200">Beranda</a></li>
+              <li><a href="#peringkat" class="hover:text-yellow-200">Leaderboard</a></li>
+              <li><a href="#detail" class="hover:text-yellow-200">Detail Acara</a></li>
+              <li><a href="#faq" class="hover:text-yellow-200">FAQ</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Aksi Utama</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="/register.html" class="hover:text-yellow-200">Daftar</a></li>
+              <li><a href="#cari" class="hover:text-yellow-200">Cari Tiket</a></li>
+            </ul>
+          </div>
+
+          <div class="sm:col-span-2 lg:col-span-1">
+            <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Hubungi Panitia</p>
+            <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
+              <li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla (Akhwat)</a></li>
+              <li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal (Ikhwan)</a></li>
+              <li><a href="https://instagram.com/reunusa.islah" target="_blank" rel="noopener" class="hover:text-yellow-200">Instagram @reunusa.islah</a></li>
+              <li><a href="mailto:reunusaislah@gmail.com" class="hover:text-yellow-200">reunusaislah@gmail.com</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <hr class="my-6 border-white/15 sm:my-8" />
+
+        <div class="flex flex-col gap-2 text-center text-xs text-white/60 sm:flex-row sm:items-center sm:justify-between sm:text-left">
+          <p>© 2026 REUNUSA. Hak Cipta Dilindungi Undang-Undang.</p>
+          <p>Dibuat dengan rasa rindu oleh Tim Panitia.</p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- =====================================================
+         JS: Hamburger mobile (toggle drawer)
+         ===================================================== -->
+    <script>
+      // Hamburger menu mobile
+      const btn = document.getElementById('navToggle');
+      const drawer = document.getElementById('mobileNav');
+      btn?.addEventListener('click', () => {
+        const open = drawer.classList.toggle('is-open');
+        drawer.style.gridTemplateRows = open ? '1fr' : '0fr';
+      });
+      drawer?.querySelectorAll('a').forEach((a) =>
+        a.addEventListener('click', () => {
+          drawer.classList.remove('is-open');
+          drawer.style.gridTemplateRows = '0fr';
+        })
+      );
+
+      // Header transparan saat di atas, solid saat di-scroll
+      const header = document.getElementById('siteHeader');
+      const onScroll = () => {
+        if (window.scrollY > 20) {
+          header.classList.remove('bg-transparent');
+          header.classList.add('bg-[#122f18]/85', 'shadow-lg');
+        } else {
+          header.classList.add('bg-transparent');
+          header.classList.remove('bg-[#122f18]/85', 'shadow-lg');
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    </script>
+
+    <!-- ===== Pop Up: Cari Tiket Saya ===== -->
+    <div
+      id="cariTiketModal"
+      class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 px-4 py-8"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cariTiketTitle"
+    >
+      <div class="relative w-full max-w-[686px] max-h-[85vh] overflow-y-auto rounded-[30px] bg-[#faf6f0] p-6 shadow-2xl sm:p-10">
+        <button
+          type="button"
+          id="closeCariTiket"
+          class="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-[#122f18] hover:bg-[#122f18]/10"
+          aria-label="Tutup"
+        >
+          <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <div class="flex flex-col items-center pb-6 pt-6 text-center">
+          <div class="flex items-center gap-3">
+            <svg viewBox="0 0 24 24" class="h-7 w-7 text-[#122f18]" fill="none">
+              <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M13 6v12" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"/>
+            </svg>
+            <h2 id="cariTiketTitle" class="text-2xl font-semibold text-[#122f18] sm:text-[36px]" style="font-family:'Anybody',sans-serif;letter-spacing:-0.02em">
+              Cari Tiket Saya
+            </h2>
+          </div>
+          <p class="mt-3 max-w-md text-sm text-[#1e2a20]" style="font-family:'Alexandria',sans-serif">
+            Masukkan data pendaftaran Anda untuk mengecek status atau mengunduh ulang tiket.
+          </p>
+        </div>
+
+        <form id="cariTiketForm" class="space-y-5" style="font-family:'Alexandria',sans-serif">
+          <div>
+            <label for="ctIdentitas" class="mb-2 block text-base font-medium text-[#122f18]">
+              Email / Nomor Whatsapp
+            </label>
+            <input
+              id="ctIdentitas"
+              type="text"
+              required
+              placeholder="contoh: nama@email.com"
+              class="h-[50px] w-full rounded-[10px] border border-[rgba(45,117,86,0.15)] bg-[#faf6f0] px-4 text-base text-[#122f18] placeholder:text-[rgba(26,58,46,0.5)] focus:border-[#122f18] focus:outline-none"
+            />
+            <p class="mt-2 text-sm font-light text-[rgba(26,58,46,0.6)]">
+              *Gunakan salah satu data yang valid saat mendaftar
+            </p>
+          </div>
+
+          <div>
+            <label for="ctKodeRef" class="mb-2 flex flex-wrap items-center gap-2 text-base font-medium text-[#122f18]">
+              Nomor Referensi
+              <span class="font-light text-[rgba(26,58,46,0.6)]">*Dapatkan dari koordinator angkatan</span>
+            </label>
+            <input
+              id="ctKodeRef"
+              type="text"
+              required
+              placeholder="contoh: REUNUSA2026"
+              class="h-[50px] w-full rounded-[10px] border border-[rgba(45,117,86,0.15)] bg-[#faf6f0] px-4 text-base uppercase text-[#122f18] placeholder:text-[rgba(26,58,46,0.5)] focus:border-[#122f18] focus:outline-none"
+            />
+          </div>
+
+          <button
+            type="submit"
+            id="ctSubmit"
+            class="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-[10px] bg-[#122f18] text-base font-medium text-[#faf6f0] shadow-md transition hover:bg-[#1e4528] disabled:opacity-60"
+          >
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            CARI DATA TIKET
+          </button>
+
+          <p id="ctMessage" class="hidden rounded-md p-3 text-center text-sm"></p>
+
+          <button type="button" id="ctDownload"
+             class="hidden mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#0e7c46] text-base font-medium text-white shadow-md transition hover:bg-[#0a5d34] disabled:opacity-60">
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 4v12m0 0l-4-4m4 4l4-4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            UNDUH E-TICKET
+          </button>
+
+          <!-- Upload bukti pembayaran (muncul jika registrasi belum punya bukti) -->
+          <div id="ctUploadBlock" class="hidden mt-2 rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-white p-4">
+            <p class="mb-2 text-sm font-medium text-[#122f18]">
+              Unggah Bukti Pembayaran
+            </p>
+            <p class="mb-3 text-xs text-[rgba(26,58,46,0.7)]">
+              Belum mengunggah bukti? Lampirkan di sini (JPG/PNG, maks. 5MB) agar panitia dapat memverifikasi pembayaran Anda.
+            </p>
+            <!-- Info QRIS + rekening bank (penting agar user tahu kemana harus bayar) -->
+            <div class="mb-3 rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] p-3 text-center">
+              <p class="mb-2 text-xs font-medium uppercase tracking-wide text-[#122f18]">Bayar via QRIS</p>
+              <img src="/assets/qris-reunusa.jpeg" alt="QRIS Reunusa" class="mx-auto block w-full max-w-[260px] rounded-[8px]" />
+              <p class="mt-3 text-xs text-[#1e2a20]">
+                Atau transfer <strong>Bank Mandiri 1370024127132</strong><br/>a.n. <strong>KHANSA QONITA</strong>
+              </p>
+              <p class="mt-2 rounded-md bg-[#fff7ed] px-2 py-1.5 text-[11px] leading-snug text-[#7c2d12] ring-1 ring-[#fdba74]">
+                ⚠️ Saat ini fitur payment gateway masih dalam proses pengembangan, silahkan memakai QRIS dan upload bukti transfer Anda.
+              </p>
+            </div>
+            <input id="ctBukti" type="file" accept="image/*"
+                   class="h-auto w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-3 py-2 text-sm text-[#122f18]" />
+            <button type="button" id="ctUploadBtn"
+                    class="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#122f18] text-sm font-medium text-[#faf6f0] shadow hover:bg-[#1e4528] disabled:opacity-60">
+              KIRIM BUKTI PEMBAYARAN
+            </button>
+          </div>
+
+          <p class="pt-2 text-center text-sm text-[#1e2a20]">
+            Mengalami kendala atau data tidak ditemukan?
+            Hubungi <a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="font-medium text-[#122f18] underline">+62 821-1894-2672 Najla (Akhwat)</a>
+            atau <a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="font-medium text-[#122f18] underline">+62 851-5079-7419 Naufal (Ikhwan)</a> untuk bantuan langsung.
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Supabase client + modal logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      (function () {
+        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+        const modal = document.getElementById('cariTiketModal');
+        const openBtn = document.getElementById('openCariTiket');
+        const closeBtn = document.getElementById('closeCariTiket');
+        const form = document.getElementById('cariTiketForm');
+        const msg = document.getElementById('ctMessage');
+        const submitBtn = document.getElementById('ctSubmit');
+
+        function openModal() {
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          document.body.style.overflow = 'hidden';
+          setTimeout(() => document.getElementById('ctIdentitas').focus(), 50);
+        }
+        function closeModal() {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          document.body.style.overflow = '';
+          msg.classList.add('hidden');
+          form.reset();
+          document.getElementById('ctUploadBlock').classList.add('hidden');
+          document.getElementById('ctDownload').classList.add('hidden');
+          foundRegCode = null;
+          foundKodeRef = null;
+        }
+        function showMsg(text, type) {
+          msg.textContent = text;
+          msg.className = 'rounded-md p-3 text-center text-sm ' +
+            (type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700');
+        }
+
+        let foundRegCode = null;
+        let foundKodeRef = null;
+
+        openBtn?.addEventListener('click', openModal);
+        closeBtn?.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+        });
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const id = document.getElementById('ctIdentitas').value.trim();
+          const kode = document.getElementById('ctKodeRef').value.trim().toUpperCase();
+          if (!id || !kode) { showMsg('Lengkapi semua data.', 'error'); return; }
+
+          submitBtn.disabled = true;
+          const originalHtml = submitBtn.innerHTML;
+          submitBtn.innerHTML = 'Mencari...';
+
+          const dlBtn = document.getElementById('ctDownload');
+          dlBtn.classList.add('hidden');
+          document.getElementById('ctUploadBlock').classList.add('hidden');
+
+          const { data, error } = await sb.rpc('lookup_registration', {
+            _identifier: id,
+            _kode: kode,
+          });
+
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalHtml;
+
+          if (error) { showMsg('Terjadi kesalahan: ' + error.message, 'error'); return; }
+          const row = Array.isArray(data) ? data[0] : data;
+          if (!row) {
+            showMsg('Data tidak ditemukan. Periksa kembali data & kode referensi Anda.', 'error');
+            return;
+          }
+
+          foundRegCode = row.registration_code;
+          foundKodeRef = kode;
+
+          // Cek apakah bukti pembayaran sudah ada (via get_registration_by_code).
+          let hasProof = false;
+          try {
+            const det = await sb.rpc('get_registration_by_code', { _registration_code: row.registration_code });
+            const drow = Array.isArray(det.data) ? det.data[0] : det.data;
+            hasProof = !!(drow && drow.payment_proof_url);
+          } catch (_) { /* abaikan */ }
+
+          const status = String(row.payment_status || '').toLowerCase();
+          if (status === 'success') {
+            showMsg(
+              `Halo ${row.full_name}! Pembayaran SUCCESS. Kode: ${row.registration_code}. Tiket siap diunduh ↓`,
+              'ok'
+            );
+            dlBtn.dataset.code = row.registration_code;
+            dlBtn.dataset.name = row.full_name || '';
+            dlBtn.classList.remove('hidden');
+          } else if (status === 'failed') {
+            showMsg(
+              `Halo ${row.full_name}. Status pembayaran: FAILED. Silakan ulangi pendaftaran.`,
+              'error'
+            );
+          } else {
+            showMsg(
+              `Halo ${row.full_name}. Kode tiket: ${row.registration_code}. Status pembayaran masih PENDING — menunggu verifikasi panitia.`,
+              'error'
+            );
+          }
+
+          // Tampilkan kolom upload bukti jika belum ada bukti dan status belum success.
+          if (!hasProof && status !== 'success') {
+            document.getElementById('ctUploadBlock').classList.remove('hidden');
+          }
+        });
+
+        // Upload bukti dari modal Cari Tiket
+        document.getElementById('ctUploadBtn').addEventListener('click', async () => {
+          if (!foundRegCode || !foundKodeRef) { showMsg('Cari data tiket Anda terlebih dahulu.', 'error'); return; }
+          const fileEl = document.getElementById('ctBukti');
+          const f = fileEl.files && fileEl.files[0];
+          if (!f || !/^image\//.test(f.type) || f.size > 5 * 1024 * 1024) {
+            showMsg('Pilih bukti pembayaran berupa gambar (JPG/PNG, maks 5MB).', 'error');
+            return;
+          }
+          const btn = document.getElementById('ctUploadBtn');
+          const orig = btn.innerHTML;
+          btn.disabled = true; btn.innerHTML = 'Mengunggah...';
+
+          const ext = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+          const path = `${foundRegCode}-${Date.now()}.${ext}`;
+          const { error: upErr } = await sb.storage
+            .from('receipts')
+            .upload(path, f, { contentType: f.type, upsert: false });
+          if (upErr) {
+            console.error(upErr);
+            showMsg('Gagal mengunggah: ' + upErr.message, 'error');
+            btn.disabled = false; btn.innerHTML = orig; return;
+          }
+          const { data: pub } = sb.storage.from('receipts').getPublicUrl(path);
+          const proofUrl = pub?.publicUrl || null;
+
+          const { data: ok, error: rpcErr } = await sb.rpc('attach_payment_proof', {
+            _registration_code: foundRegCode,
+            _kode_referensi: foundKodeRef,
+            _proof_url: proofUrl,
+          });
+          if (rpcErr || !ok) {
+            console.error(rpcErr);
+            showMsg('Gagal menyimpan bukti: ' + (rpcErr?.message || 'tidak diizinkan'), 'error');
+            btn.disabled = false; btn.innerHTML = orig; return;
+          }
+
+          showMsg('Bukti pembayaran berhasil dikirim. Tunggu verifikasi panitia.', 'ok');
+          document.getElementById('ctUploadBlock').classList.add('hidden');
+          btn.disabled = false; btn.innerHTML = orig;
+        });
+
+        // ====== Auto-download E-Ticket sebagai PDF (tanpa pindah halaman) ======
+        function buildTicketHtml(d) {
+          const ok = String(d.payment_status).toLowerCase() === 'success';
+          const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+          return `
+          <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
+            <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
+              <div style="font-size:12px;letter-spacing:0.32em;text-transform:uppercase;opacity:.85;">E-Ticket • Reunusa 2026</div>
+              <h1 style="font-family:'Anybody',sans-serif;font-weight:700;font-size:44px;line-height:1;margin:0;">REUNUSA<br/>2026</h1>
+              <span style="align-self:flex-start;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">Reuni Akbar Alumni Husnul Khotimah</span>
+            </div>
+            <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;">
+              <h2 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:26px;margin:0 0 14px;">Main Event Reuni Nusantara</h2>
+              <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Lokasi</p>
+              <p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">Gor Putra Pondok Pesantren Husnul Khotimah</p>
+            </div>
+            <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;display:grid;grid-template-columns:1fr 1fr;gap:22px 28px;">
+              <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Nama</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${escapeHtmlLocal(d.full_name || '—')}</p></div>
+              <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Kode Tiket</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${escapeHtmlLocal(d.registration_code || '—')}</p></div>
+              <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Tanggal Event</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">25-26 Juli 2026</p></div>
+              <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Waktu</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">08:00 - 20:00 WIB</p></div>
+            </div>
+            <div style="padding:22px 28px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
+              <div>
+                <h3 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0 0 12px;">Informasi Tiket</h3>
+                <p style="margin:0;font-size:14px;line-height:1.55;">Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event.</p>
+                <div style="margin-top:10px;display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;${ok?'background:#dcfce7;color:#166534;':'background:#fef9c3;color:#854d0e;'}">${ok?'● Terverifikasi':'● Menunggu Pembayaran'}</div>
+              </div>
+              <div style="background:#fff;border:1px solid #D2DBD4;border-radius:16px;padding:14px;text-align:center;">
+                ${ok?`<img src="${qrSrc}" alt="QR ${escapeHtmlLocal(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;display:block;margin-top:8px;">Kode: ${escapeHtmlLocal(d.registration_code)}</small>`:'<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'}
+              </div>
+            </div>
+          </div>`;
+        }
+        function escapeHtmlLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+        document.getElementById('ctDownload').addEventListener('click', async () => {
+          const btn = document.getElementById('ctDownload');
+          const code = btn.dataset.code;
+          if (!code) { showMsg('Cari data tiket Anda terlebih dahulu.', 'error'); return; }
+          if (!window.html2pdf) { showMsg('Library PDF gagal dimuat. Coba muat ulang halaman.', 'error'); return; }
+          const orig = btn.innerHTML;
+          btn.disabled = true; btn.innerHTML = 'Menyiapkan PDF...';
+          try {
+            const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
+            if (error) throw error;
+            const row = Array.isArray(data) ? data[0] : data;
+            if (!row) throw new Error('Data tiket tidak ditemukan.');
+
+            // Render off-screen agar html2canvas dapat capture penuh.
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+            wrap.innerHTML = buildTicketHtml(row);
+            document.body.appendChild(wrap);
+            // Tunggu QR/font load
+            await new Promise(r => setTimeout(r, 400));
+            await window.html2pdf().set({
+              margin: 8,
+              filename: `e-ticket-reunusa-${code}.pdf`,
+              image: { type: 'jpeg', quality: 0.98 },
+              html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+              pagebreak: { mode: ['avoid-all', 'css'] },
+            }).from(wrap.firstElementChild).save();
+            wrap.remove();
+            showMsg('E-ticket berhasil diunduh.', 'ok');
+          } catch (e) {
+            console.error(e);
+            showMsg('Gagal mengunduh tiket: ' + (e.message || e), 'error');
+          } finally {
+            btn.disabled = false; btn.innerHTML = orig;
+          }
+        });
+      })();
+    </script>
+
+    <!-- =====================================================================
+         Realtime Leaderboard — Jumlah Pendaftar per Angkatan Islah
+         Live via Supabase Realtime (postgres_changes on public.registrations)
+         ===================================================================== -->
+    <script>
+      (function () {
+        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+        const container = document.getElementById('leaderboardList');
+        if (!container) return;
+
+        // Toggle this to true if you only want PAID registrations counted.
+        const ONLY_PAID = false;
+
+        function escapeHtml(s) {
+          return String(s).replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+          })[c]);
+        }
+
+        function render(list) {
+          // list: [{ angkatan, count }, ...] sorted desc
+          if (list.length === 0) {
+            container.innerHTML =
+              '<div class="text-center text-sm text-white/70">Belum ada pendaftar.</div>';
+            return;
+          }
+
+          const max = list[0].count || 1;
+          container.innerHTML = list.map(({ angkatan, count }) => {
+            const pct = Math.max(4, Math.round((count / max) * 100));
+            return `
+              <div class="flex items-center gap-3 sm:gap-5">
+                <div class="w-20 shrink-0 text-right text-sm text-white sm:w-24 sm:text-lg">${escapeHtml(angkatan)}</div>
+                <div class="flex-1"><div class="chart-bar shadow-chart-bar" style="width: ${pct}%;"></div></div>
+                <div class="w-24 shrink-0 text-sm text-white sm:w-32 sm:text-base">${count} Pendaftar</div>
+              </div>`;
+          }).join('');
+        }
+
+        async function loadAll() {
+          try {
+            const { data, error } = await sb.rpc('get_angkatan_counts', {
+              _only_paid: ONLY_PAID,
+            });
+            if (error) throw error;
+            // RPC returns rows: [{ angkatan, count }, ...]
+            const list = (data || [])
+              .map(({ angkatan, count }) => ({ angkatan, count: Number(count) || 0 }))
+              .sort((a, b) => b.count - a.count);
+            render(list);
+          } catch (error) {
+            console.error('Leaderboard load error:', {
+              message: error?.message,
+              code: error?.code,
+              details: error?.details,
+              hint: error?.hint,
+              error,
+            });
+            container.innerHTML =
+              '<div class="text-center text-sm text-red-200">Gagal memuat leaderboard.</div>';
+          }
+        }
+
+        loadAll();
+        setInterval(loadAll, 20000);
+      })();
+    </script>
+
+    <!-- ===== Pop Up: Donasi Sukarela ===== -->
+    <div
+      id="donasiModal"
+      class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/60 px-4 py-8"
+      role="dialog" aria-modal="true" aria-labelledby="donasiTitle"
+    >
+      <div class="relative max-h-[90vh] w-full max-w-[560px] overflow-y-auto rounded-[24px] bg-[#faf6f0] p-6 shadow-2xl sm:p-8">
+        <button type="button" id="closeDonasi"
+          class="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#122f18] hover:bg-[#122f18]/10"
+          aria-label="Tutup">
+          <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </button>
+
+        <div class="pt-2 text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#122f18]/10">
+            <svg viewBox="0 0 24 24" class="h-6 w-6 text-[#122f18]" fill="none">
+              <path d="M12 21s-7-4.534-7-10a4 4 0 0 1 7-2.646A4 4 0 0 1 19 11c0 5.466-7 10-7 10z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 id="donasiTitle" class="mt-3 text-2xl font-semibold text-[#122f18] sm:text-3xl" style="font-family:'Anybody',sans-serif;letter-spacing:-0.02em">
+            Donasi Sukarela
+          </h2>
+          <p class="mt-2 text-sm text-[#1e2a20]" style="font-family:'Alexandria',sans-serif">
+            Dukung Reunusa 2026. Donasi ≥ Rp150.000 mendapatkan kaos eksklusif. Email Anda akan otomatis terverifikasi saat mendaftar event.
+          </p>
+        </div>
+
+        <form id="donasiForm" class="mt-6 space-y-4" style="font-family:'Alexandria',sans-serif">
+          <div>
+            <label for="dnName" class="mb-1.5 block text-sm font-medium text-[#122f18]">Nama Lengkap</label>
+            <input id="dnName" type="text" required placeholder="Nama Anda"
+              class="h-12 w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-4 text-base text-[#122f18] focus:border-[#122f18] focus:outline-none" />
+          </div>
+          <div>
+            <label for="dnEmail" class="mb-1.5 block text-sm font-medium text-[#122f18]">Email</label>
+            <input id="dnEmail" type="email" required placeholder="nama@email.com"
+              class="h-12 w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-4 text-base text-[#122f18] focus:border-[#122f18] focus:outline-none" />
+          </div>
+          <div>
+            <label for="dnAngkatan" class="mb-1.5 block text-sm font-medium text-[#122f18]">Angkatan Islah</label>
+            <select id="dnAngkatan" required
+              class="h-12 w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-3 text-base text-[#122f18] focus:border-[#122f18] focus:outline-none">
+              <option value="">Pilih Angkatan</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[#122f18]">Nominal Donasi</label>
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4" id="dnQuickAmounts">
+              <button type="button" data-amount="50000"  class="dn-amt h-11 rounded-[10px] border border-[rgba(45,117,86,0.3)] bg-white text-sm font-medium text-[#122f18] hover:border-[#122f18]">Rp 50rb</button>
+              <button type="button" data-amount="100000" class="dn-amt h-11 rounded-[10px] border border-[rgba(45,117,86,0.3)] bg-white text-sm font-medium text-[#122f18] hover:border-[#122f18]">Rp 100rb</button>
+              <button type="button" data-amount="150000" class="dn-amt h-11 rounded-[10px] border border-[rgba(45,117,86,0.3)] bg-white text-sm font-medium text-[#122f18] hover:border-[#122f18]">Rp 150rb</button>
+              <button type="button" data-amount="200000" class="dn-amt h-11 rounded-[10px] border border-[rgba(45,117,86,0.3)] bg-white text-sm font-medium text-[#122f18] hover:border-[#122f18]">Rp 200rb</button>
+            </div>
+            <input id="dnAmount" type="text" inputmode="numeric" required placeholder="Nominal lain (Rp)"
+              class="mt-2 h-12 w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-4 text-base text-[#122f18] focus:border-[#122f18] focus:outline-none" />
+            <p class="mt-1 text-xs text-[rgba(26,58,46,0.6)]">Minimum Rp 10.000.</p>
+          </div>
+
+          <div id="dnKaosWrap" class="hidden">
+            <label for="dnKaos" class="mb-1.5 block text-sm font-medium text-[#122f18]">
+              Ukuran Kaos <span class="text-xs font-normal text-emerald-700">(Gratis untuk donasi ≥ Rp150.000)</span>
+            </label>
+            <select id="dnKaos"
+              class="h-12 w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-3 text-base text-[#122f18] focus:border-[#122f18] focus:outline-none">
+              <option value="">Pilih ukuran</option>
+              <option value="S">S</option><option value="M">M</option><option value="L">L</option>
+              <option value="XL">XL</option><option value="XXL">XXL</option>
+            </select>
+          </div>
+
+          <p id="dnMsg" class="hidden rounded-md p-3 text-center text-sm"></p>
+
+          <button type="submit" id="dnSubmit"
+            class="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#122f18] text-base font-medium text-[#faf6f0] shadow-md transition hover:bg-[#1e4528] disabled:opacity-60">
+            Lanjutkan ke Pembayaran
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== Pop Up: QRIS Donasi (muncul setelah submit donasi) ===== -->
+    <div id="dnQrisModal"
+      class="fixed inset-0 z-[110] hidden items-center justify-center bg-black/65 px-4 py-8 overflow-y-auto"
+      role="dialog" aria-modal="true">
+      <div class="relative max-h-[92vh] w-full max-w-[520px] overflow-y-auto rounded-[20px] bg-[#faf6f0] p-6 shadow-2xl sm:p-7" style="font-family:'Alexandria',sans-serif">
+        <button type="button" id="dnQrisClose" aria-label="Tutup"
+          class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-[#122f18] hover:bg-[#122f18]/10 text-2xl leading-none">×</button>
+        <h3 class="text-2xl font-semibold text-[#122f18]" style="font-family:'Anybody',sans-serif">Pembayaran Donasi via QRIS</h3>
+        <p id="dnQrisNote" class="mt-1 text-sm text-[rgba(26,58,46,0.75)]">Donasi tercatat. Scan QRIS di bawah lalu unggah bukti pembayaran.</p>
+        <div class="mt-3 rounded-[14px] border border-[rgba(45,117,86,0.25)] bg-white p-3 text-center">
+          <img src="/assets/qris-reunusa.jpeg" alt="QRIS Reunusa" class="mx-auto block w-full max-w-[300px] rounded-[10px]" />
+        </div>
+        <div class="mt-3 rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-white p-3 text-sm text-[#1e2a20]">
+          Atau transfer <strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong>.
+        </div>
+        <div class="mt-2 rounded-[10px] border border-[#fdba74] bg-[#fff7ed] p-3 text-xs leading-snug text-[#7c2d12]">
+          ⚠️ Saat ini fitur payment gateway masih dalam proses pengembangan, silahkan memakai QRIS dan upload bukti transfer Anda.
+        </div>
+        <div class="mt-4">
+          <label for="dnBukti" class="mb-1.5 block text-sm font-medium text-[#122f18]">Upload Bukti Pembayaran <span class="text-red-600">*</span></label>
+          <p class="mb-2 text-xs text-[rgba(26,58,46,0.6)]">Format JPG/PNG, maks. 5MB.</p>
+          <input id="dnBukti" type="file" accept="image/*"
+            class="h-auto w-full rounded-[10px] border border-[rgba(45,117,86,0.25)] bg-[#faf6f0] px-3 py-2 text-sm text-[#122f18]" />
+          <p id="dnBuktiErr" class="mt-1 hidden text-xs text-red-700">Bukti pembayaran wajib (gambar, maks 5MB).</p>
+        </div>
+        <button type="button" id="dnQrisUpload"
+          class="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[#122f18] text-base font-medium text-[#faf6f0] shadow hover:bg-[#1e4528] disabled:opacity-60">
+          KIRIM BUKTI &amp; SELESAI
+        </button>
+        <p class="mt-3 text-center text-xs text-[rgba(26,58,46,0.7)]">
+          Tutup pop-up ini? Anda tetap bisa mengirim bukti via WhatsApp +62 821-1894-2672 Najla (Akhwat) atau +62 851-5079-7419 Naufal (Ikhwan).
+        </p>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // Main project database
+        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const sb = window.supabase.createClient(SB_URL, SB_KEY);
+
+        const modal = document.getElementById('donasiModal');
+        const openBtns = [document.getElementById('openDonasi'), document.getElementById('openDonasiMobile')];
+        const closeBtn = document.getElementById('closeDonasi');
+        const form = document.getElementById('donasiForm');
+        const msg = document.getElementById('dnMsg');
+        const submitBtn = document.getElementById('dnSubmit');
+        const amountInput = document.getElementById('dnAmount');
+        const kaosWrap = document.getElementById('dnKaosWrap');
+        const kaosSel = document.getElementById('dnKaos');
+        const angkatanSel = document.getElementById('dnAngkatan');
+
+        // Populate Islah 1..28
+        for (let i = 1; i <= 28; i++) {
+          const o = document.createElement('option');
+          o.value = `Islah ${i}`; o.textContent = `Islah ${i}`;
+          angkatanSel.appendChild(o);
+        }
+
+        function open() {
+          modal.classList.remove('hidden'); modal.classList.add('flex');
+          document.body.style.overflow = 'hidden';
+        }
+        function close() {
+          modal.classList.add('hidden'); modal.classList.remove('flex');
+          document.body.style.overflow = '';
+          msg.classList.add('hidden'); form.reset(); toggleKaos(0);
+          document.querySelectorAll('.dn-amt').forEach(b => b.classList.remove('!border-[#122f18]', '!bg-[#122f18]', '!text-white'));
+        }
+        function showMsg(text, type) {
+          msg.textContent = text;
+          msg.className = 'rounded-md p-3 text-center text-sm ' +
+            (type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700');
+        }
+        function parseAmount() {
+          return Number(String(amountInput.value).replace(/\D/g, '') || 0);
+        }
+        function toggleKaos(amt) {
+          if (amt >= 150000) {
+            kaosWrap.classList.remove('hidden');
+            kaosSel.setAttribute('required', 'required');
+          } else {
+            kaosWrap.classList.add('hidden');
+            kaosSel.removeAttribute('required');
+            kaosSel.value = '';
+          }
+        }
+
+        openBtns.forEach(b => b?.addEventListener('click', open));
+        closeBtn?.addEventListener('click', close);
+        modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && !modal.classList.contains('hidden')) close();
+        });
+
+        document.querySelectorAll('.dn-amt').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const amt = Number(btn.dataset.amount);
+            amountInput.value = amt.toLocaleString('id-ID');
+            document.querySelectorAll('.dn-amt').forEach(b => b.classList.remove('!border-[#122f18]', '!bg-[#122f18]', '!text-white'));
+            btn.classList.add('!border-[#122f18]', '!bg-[#122f18]', '!text-white');
+            toggleKaos(amt);
+          });
+        });
+        amountInput.addEventListener('input', () => {
+          const raw = parseAmount();
+          amountInput.value = raw ? raw.toLocaleString('id-ID') : '';
+          document.querySelectorAll('.dn-amt').forEach(b => b.classList.remove('!border-[#122f18]', '!bg-[#122f18]', '!text-white'));
+          toggleKaos(raw);
+        });
+
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const name = document.getElementById('dnName').value.trim();
+          const email = document.getElementById('dnEmail').value.trim().toLowerCase();
+          const angkatan = angkatanSel.value;
+          const amount = parseAmount();
+          const tshirt = amount >= 150000 ? (kaosSel.value || '') : null;
+
+          if (!name || !email || !angkatan) { showMsg('Lengkapi nama, email, dan angkatan.', 'error'); return; }
+          if (amount < 10000) { showMsg('Nominal minimum Rp 10.000.', 'error'); return; }
+          if (amount >= 150000 && !tshirt) { showMsg('Pilih ukuran kaos untuk donasi ≥ Rp150.000.', 'error'); return; }
+
+          submitBtn.disabled = true;
+          const origText = submitBtn.innerHTML;
+          submitBtn.innerHTML = 'Memproses...';
+
+          const donationCode = 'DON-' + Date.now().toString(36).toUpperCase()
+            + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+
+          const { error: insErr } = await sb.from('donations').insert({
+            donor_name: name, 
+            donor_email: email, 
+            angkatan: angkatan, 
+            amount: Number(amount), 
+            tshirt_size: tshirt,
+            order_id: donationCode, 
+            payment_status: 'pending'
+          });
+          if (insErr) {
+            console.error(insErr);
+            showMsg('Gagal menyimpan donasi: ' + insErr.message, 'error');
+            submitBtn.disabled = false; submitBtn.innerHTML = origText; return;
+          }
+
+          // Pembayaran manual: tutup form donasi, buka pop-up QRIS + upload bukti.
+          submitBtn.innerHTML = origText;
+          submitBtn.disabled = false;
+          showMsg('Donasi tercatat (kode: ' + donationCode + '). Lanjutkan pembayaran via pop-up QRIS.', 'ok');
+          close();
+          openDnQris(donationCode);
+          form.reset();
+        });
+
+        // ===== QRIS Modal untuk Donasi =====
+        const dnQrisModal = document.getElementById('dnQrisModal');
+        const dnQrisClose = document.getElementById('dnQrisClose');
+        const dnQrisUpload = document.getElementById('dnQrisUpload');
+        const dnBukti = document.getElementById('dnBukti');
+        const dnBuktiErr = document.getElementById('dnBuktiErr');
+        const dnQrisNote = document.getElementById('dnQrisNote');
+        let dnPendingCode = null;
+
+        function openDnQris(code) {
+          dnPendingCode = code;
+          dnQrisNote.innerHTML = `Kode donasi Anda: <strong>${code}</strong>. Scan QRIS lalu unggah bukti pembayaran.`;
+          dnBuktiErr.classList.add('hidden');
+          dnBukti.value = '';
+          dnQrisModal.classList.remove('hidden');
+          dnQrisModal.classList.add('flex');
+          document.body.style.overflow = 'hidden';
+        }
+        function closeDnQris() {
+          dnQrisModal.classList.add('hidden');
+          dnQrisModal.classList.remove('flex');
+          document.body.style.overflow = '';
+        }
+        dnQrisClose.addEventListener('click', closeDnQris);
+        dnQrisModal.addEventListener('click', (e) => { if (e.target === dnQrisModal) closeDnQris(); });
+
+        dnQrisUpload.addEventListener('click', async () => {
+          const f = dnBukti.files && dnBukti.files[0];
+          const bad = !f || !/^image\//.test(f.type) || f.size > 5 * 1024 * 1024;
+          dnBuktiErr.classList.toggle('hidden', !bad);
+          if (bad || !dnPendingCode) return;
+          const orig = dnQrisUpload.innerHTML;
+          dnQrisUpload.disabled = true; dnQrisUpload.innerHTML = 'Mengunggah...';
+          const ext = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+          const path = `donation-${dnPendingCode}-${Date.now()}.${ext}`;
+          const { error: upErr } = await sb.storage.from('receipts').upload(path, f, { contentType: f.type, upsert: false });
+          if (upErr) {
+            console.error(upErr);
+            dnQrisUpload.disabled = false; dnQrisUpload.innerHTML = orig;
+            alert('Gagal mengunggah bukti: ' + upErr.message);
+            return;
+          }
+          dnQrisUpload.disabled = false; dnQrisUpload.innerHTML = orig;
+          alert('Terima kasih! Bukti donasi (kode: ' + dnPendingCode + ') sudah terkirim ke panitia.');
+          dnPendingCode = null;
+          closeDnQris();
+        });
+      })();
+    </script>
+  </body>
+</html>

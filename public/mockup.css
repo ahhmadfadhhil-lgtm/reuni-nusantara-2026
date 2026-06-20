@@ -1,0 +1,213 @@
+/* =========================================================
+   REUNUSA 2026 — Custom CSS (RESPONSIVE)
+   ========================================================= */
+
+
+/* =========================================================
+   1. WARNA DASAR
+   ========================================================= */
+:root {
+  --green-950: #0a1f10;                      /* hijau hutan paling gelap */
+  --green-900: #122f18;                      /* hijau hutan gelap */
+  --green-footer: #1e2a20;                   /* hijau footer (Figma) */
+  --cream:     #f4f0e6;
+  --sun:       #ffed9e;
+  --blossom:   #fcbcca;
+  --lilac:     #f1d2fc;
+}
+
+
+/* =========================================================
+   2. BODY
+   ========================================================= */
+body {
+  background-color: var(--green-950);
+  font-family: 'Alexandria', sans-serif;
+  color: var(--cream);
+}
+
+
+/* =========================================================
+   3. PATTERN BERULANG
+   ========================================================= */
+.pattern-band {
+  background-image: url('/assets/pattern-1.png');
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: auto 100%;
+  position: relative;
+}
+.pattern-band-2 {
+  background-image: url('/assets/pattern-2.png');
+  background-repeat: repeat-x;
+  background-position: center;
+  background-size: auto 100%;
+  position: relative;
+}
+
+
+/* =========================================================
+   4. GRADASI TRANSISI HIJAU (atas & bawah pattern)
+   Membuat transisi pattern-1 ⇄ pattern-2 jadi mulus
+   ========================================================= */
+.green-fade-top::before,
+.green-fade-bottom::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 160px;                             /* tinggi area transisi */
+  pointer-events: none;
+  z-index: 1;
+}
+.green-fade-top::before {
+  top: 0;
+  background-image: linear-gradient(to bottom, var(--green-950) 0%, transparent 100%);
+}
+.green-fade-bottom::after {
+  bottom: 0;
+  background-image: linear-gradient(to top, var(--green-950) 0%, transparent 100%);
+}
+
+
+/* =========================================================
+   5. HERO SPOTLIGHT
+   ========================================================= */
+.bg-forest-spotlight {
+  background-color: var(--green-900);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% 0%,   rgba(255,237,158,0.18), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(252,188,202,0.12), transparent 70%);
+}
+
+
+/* =========================================================
+   6. TEKS GRADIENT HERO
+   ========================================================= */
+.text-gradient-hero {
+  background-image: linear-gradient(103deg, #fcbcca 44%, #ffed9e 92%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 18px rgba(0,0,0,0.25);
+}
+
+
+/* =========================================================
+   7. GLOW TOMBOL & CHART BAR
+   ========================================================= */
+.shadow-sun-glow {
+  box-shadow: inset 0 0 9px 1px rgba(255,255,255,0.85);
+}
+.shadow-chart-bar {
+  box-shadow:
+    0 0 9px 3px rgba(252,188,202,0.50),
+    inset 0 0 9px 1px rgba(255,255,255,1.00);
+}
+
+
+/* =========================================================
+   8. CHART BAR
+   ========================================================= */
+.chart-bar {
+  height: 40px;
+  border-radius: 6px;
+  background-image: linear-gradient(to right, #fefce8 10%, #fde68a 50%);
+}
+
+
+/* =========================================================
+   9. EVENT TICKET CARD (pakai SVG perangko sebagai background)
+   ========================================================= */
+.event-ticket {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 592 / 454;                   /* sama dengan viewBox SVG */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.event-ticket__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+.event-ticket__content {
+  position: relative;
+  z-index: 1;
+  padding: 8% 10%;                           /* jarak dari tepi bentuk perangko */
+  width: 100%;
+}
+
+
+/* =========================================================
+   10. ACCORDION FAQ
+   ========================================================= */
+.faq-item {
+  background-image: linear-gradient(135deg, #fde68a 50%, #fecaca 100%);
+  border-radius: 16px;
+  padding: 18px 20px;
+  color: var(--green-900);
+}
+@media (min-width: 640px) {
+  .faq-item { padding: 20px 28px; }          /* lebih lega di tablet/desktop */
+}
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;                   /* rapi saat 2 baris di mobile */
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.4;
+}
+@media (min-width: 640px) {
+  .faq-item summary { font-size: 18px; align-items: center; }
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item .toggle {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #f5f5f4;
+  display: grid;
+  place-items: center;
+  transition: transform .2s;
+}
+.faq-item[open] .toggle { transform: rotate(45deg); }
+.faq-item p {
+  margin-top: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+}
+@media (min-width: 640px) {
+  .faq-item p { font-size: 16px; }
+}
+
+
+/* =========================================================
+   11. MARQUEE (siap pakai)
+   ========================================================= */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 30s linear infinite; }
+
+
+/* =========================================================
+   12. UTILITY
+   ========================================================= */
+.font-display { font-family: 'Anybody', sans-serif; }
+.font-body    { font-family: 'Alexandria', sans-serif; }
+.font-faq     { font-family: 'Inter', sans-serif; }

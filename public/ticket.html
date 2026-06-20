@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     REUNUSA 2026 -- E-Ticket (printable / downloadable)
+     URL: /ticket.html?code=RNS-XXXX        (cukup kode saja)
+          /ticket.html?code=RNS-XXXX&kode=REF (jika datang dari Cari Tiket)
+     ============================================================ -->
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>E-Ticket Reunusa 2026</title>
+    <link rel="icon" type="image/png" href="/assets/pavicon.png" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #1E2A20;
+        --muted: #D2DBD4;
+        --cream: #FAF6F0;
+        --forest: #122F18;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'Alexandria', sans-serif;
+        background: var(--cream);
+        color: var(--ink);
+        padding: 32px 16px 48px;
+        min-height: 100vh;
+      }
+      .ticket {
+        width: 800px;
+        max-width: none;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px rgba(18, 47, 24, 0.12);
+      }
+      /* Thumbnail */
+      .thumb {
+        position: relative;
+        width: 800px;
+        max-width: none;
+        height: 290px;
+        background:
+          radial-gradient(ellipse 70% 60% at 30% 20%, rgba(255, 237, 158, 0.55), transparent 60%),
+          radial-gradient(ellipse 60% 60% at 80% 80%, rgba(252, 188, 202, 0.45), transparent 60%),
+          linear-gradient(135deg, #122F18 0%, #2d7556 100%);
+        display: flex; flex-direction: column; justify-content: space-between;
+        padding: 22px 26px; color: var(--cream);
+      }
+      .thumb__brand { font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.85; }
+      .thumb__title {
+        font-family: 'Anybody', sans-serif;
+        font-weight: 700;
+        font-size: clamp(28px, 6vw, 44px);
+        letter-spacing: -0.02em;
+        line-height: 1;
+        margin: 0;
+      }
+      .thumb__chip {
+        align-self: flex-start;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+      }
+      /* Sections */
+      .section { padding: 22px 28px; }
+      .section + .section { border-top: 1px solid var(--muted); }
+      .label {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6b7a6f;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .value {
+        font-family: 'Anybody', sans-serif;
+        font-weight: 600;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        margin: 0;
+        word-break: break-word;
+      }
+      .value--lg { font-size: 26px; }
+      .row-loc { display: flex; align-items: center; gap: 10px; }
+      .row-loc svg { flex: 0 0 22px; color: var(--forest); }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px 28px; }
+      /* Info + QR */
+      .info-qr { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
+      .info p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+      .qr-wrap {
+        background: #fff;
+        border: 1px solid var(--muted);
+        border-radius: 16px;
+        padding: 14px;
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+      }
+      .qr-wrap img { width: 100%; height: auto; display: block; border-radius: 8px; }
+      .qr-wrap small { font-size: 11px; color: #6b7a6f; text-align: center; }
+      /* Status pill */
+      .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 8px; }
+      .status--success { background: #dcfce7; color: #166534; }
+      .status--pending { background: #fef9c3; color: #854d0e; }
+      .status--failed { background: #fee2e2; color: #991b1b; }
+      /* Actions */
+      .actions { display: flex; gap: 10px; justify-content: center; margin: 22px auto 0; max-width: 760px; }
+      .btn { padding: 12px 22px; border-radius: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px; border: 1px solid transparent; text-decoration: none; display: inline-flex; align-items: center; }
+      .btn-primary { background: var(--forest); color: var(--cream); }
+      .btn-ghost { background: transparent; border-color: var(--forest); color: var(--forest); }
+      @media (max-width: 560px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .info-qr { grid-template-columns: 1fr; }
+        .qr-wrap { max-width: 280px; margin: 0 auto; }
+      }
+      @media print {
+        body { background: #fff; padding: 0; }
+        .actions, .no-print { display: none !important; }
+        .ticket { box-shadow: none; border: 1px solid var(--ink); }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="ticket" id="ticketCard">
+      <!-- Section 1: Thumbnail -->
+      <header class="thumb">
+        <span class="thumb__brand">E-Ticket • Reunusa 2026</span>
+        <h1 class="thumb__title">REUNUSA<br/>2026</h1>
+        <span class="thumb__chip">Reuni Akbar Alumni Husnul Khotimah</span>
+      </header>
+
+      <!-- Section 2: Judul + Lokasi (fix) -->
+      <section class="section">
+        <h2 class="value value--lg" style="margin-bottom:18px">Main Event Reuni Nusantara</h2>
+        <p class="label">Lokasi</p>
+        <div class="row-loc">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true">
+            <path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7.11 11.4 7.41 11.66a.999.999 0 0 0 1.18 0C12.89 21.4 20 15.25 20 10c0-4.42-3.58-8-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
+          </svg>
+          <p class="value">Gor Putra Pondok Pesantren Husnul Khotimah</p>
+        </div>
+      </section>
+
+      <!-- Section 3+4: Nama & Kode Tiket | Tanggal & Waktu -->
+      <section class="section">
+        <div class="grid-2" id="ticketGrid">
+          <div>
+            <p class="label">Nama</p>
+            <p class="value" id="fNama">—</p>
+          </div>
+          <div>
+            <p class="label">Kode Tiket</p>
+            <p class="value" id="fKode">—</p>
+          </div>
+          <div>
+            <p class="label">Tanggal Event</p>
+            <p class="value">25-26 Juli 2026</p>
+          </div>
+          <div>
+            <p class="label">Waktu</p>
+            <p class="value">08:00 - 20:00 WIB</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5+6: Informasi Tiket + QR Code -->
+      <section class="section">
+        <div class="info-qr">
+          <div class="info">
+            <h3 class="value" style="margin-bottom:12px">Informasi Tiket</h3>
+            <p>Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event. Pengunjung WAJIB mematuhi aturan yang berlaku selama acara berlangsung.</p>
+            <div id="fStatus"></div>
+            <div id="pendingNotice" style="display:none;margin-top:14px;padding:14px 16px;border-radius:12px;background:#fef3c7;border:1px solid #f59e0b;color:#7c2d12">
+              <strong style="display:block;margin-bottom:4px">Pendaftaran berhasil!</strong>
+              <span style="font-size:13px;line-height:1.5">Bukti pembayaran Anda sedang diverifikasi oleh panitia. Silakan simpan link halaman ini dan cek kembali secara berkala untuk mengunduh e-ticket Anda.</span>
+            </div>
+          </div>
+          <div class="qr-wrap" id="qrWrap">
+            <img id="fQR" alt="QR Tiket" src="" />
+            <small id="fQRNote">Identifikasi & validasi tiket</small>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="actions no-print">
+      <button class="btn btn-primary" id="btnPdf">Unduh PDF</button>
+      <button class="btn btn-ghost" onclick="window.print()">Cetak</button>
+      <a class="btn btn-ghost" href="/mockup.html">Kembali</a>
+    </div>
+
+    <script>
+      const SUPABASE_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+      function statusPill(s) {
+        const v = String(s || '').toLowerCase();
+        if (v === 'success') return '<span class="status status--success">● Terverifikasi</span>';
+        if (v === 'failed')  return '<span class="status status--failed">● Gagal</span>';
+        return '<span class="status status--pending">● Menunggu Pembayaran</span>';
+      }
+
+      function renderTicket(d) {
+        if (!d) {
+          document.getElementById('fNama').textContent = 'Tiket tidak ditemukan';
+          document.getElementById('fKode').textContent = '—';
+          document.getElementById('fStatus').innerHTML = '<span class="status status--failed">● Tidak ditemukan</span>';
+          document.getElementById('fQR').alt = 'Tidak tersedia';
+          document.getElementById('qrWrap').style.display = 'none';
+          document.getElementById('btnPdf').style.display = 'none';
+          return;
+        }
+        const ok = String(d.payment_status).toLowerCase() === 'success';
+        document.getElementById('fNama').textContent = d.full_name || '—';
+        document.getElementById('fKode').textContent = d.registration_code || '—';
+        document.getElementById('fStatus').innerHTML = statusPill(d.payment_status);
+        const qrWrap = document.getElementById('qrWrap');
+        const btnPdf = document.getElementById('btnPdf');
+        const pendingNotice = document.getElementById('pendingNotice');
+        if (ok) {
+          qrWrap.style.display = '';
+          btnPdf.style.display = '';
+          pendingNotice.style.display = 'none';
+          const qr = document.getElementById('fQR');
+          qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+          qr.alt = `QR ${d.registration_code}`;
+          document.getElementById('fQRNote').textContent = `Kode: ${d.registration_code}`;
+        } else {
+          qrWrap.style.display = 'none';
+          btnPdf.style.display = 'none';
+          pendingNotice.style.display = '';
+        }
+      }
+
+      (async function () {
+        const qs = new URLSearchParams(location.search);
+        const code = (qs.get('code') || '').trim();
+        if (!code) {
+          renderTicket(null);
+          return;
+        }
+        const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
+        if (error) {
+          console.error(error);
+          document.getElementById('fNama').textContent = 'Error';
+          document.getElementById('fKode').textContent = error.message;
+          return;
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        renderTicket(row);
+      })();
+
+      // ---- Download as PDF (html2pdf.js) ----
+      document.getElementById('btnPdf').addEventListener('click', async () => {
+        const el = document.getElementById('ticketCard');
+        const code = (new URLSearchParams(location.search).get('code') || 'tiket').trim();
+        const btn = document.getElementById('btnPdf');
+        const orig = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
+        el.style.width = '800px';
+        el.style.maxWidth = 'none';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+        wrap.appendChild(el.cloneNode(true));
+        document.body.appendChild(wrap);
+        await new Promise(r => setTimeout(r, 400));
+        window.html2pdf().set({
+          margin: 8,
+          filename: `e-ticket-reunusa-${code}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css'] },
+        }).from(wrap.firstElementChild).save().finally(() => {
+          wrap.remove();
+          btn.disabled = false; btn.textContent = orig;
+        });
+      });
+    </script>
+  </body>
+</html>
