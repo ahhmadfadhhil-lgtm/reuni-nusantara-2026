@@ -15,12 +15,12 @@ export const Route = createFileRoute("/")({
 
 function RedirectToMockup() {
   useEffect(() => {
-    window.location.replace("/");
+    window.location.replace("/index.html");
   }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center text-foreground">
-      Membuka REUNUSA 2026… <a className="ml-1 underline" href="/">Klik di sini bila tidak otomatis.</a>
+      Membuka REUNUSA 2026… <a className="ml-1 underline" href="/index.html">Klik di sini bila tidak otomatis.</a>
     </div>
   );
 }
