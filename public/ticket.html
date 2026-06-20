@@ -265,7 +265,7 @@
       })();
 
       // ---- Download as PDF (html2pdf.js) ----
-      document.getElementById('btnPdf').addEventListener('click', () => {
+      document.getElementById('btnPdf').addEventListener('click', async () => {
         const el = document.getElementById('ticketCard');
         const code = (new URLSearchParams(location.search).get('code') || 'tiket').trim();
         const btn = document.getElementById('btnPdf');
@@ -273,6 +273,11 @@
         btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
         el.style.width = '800px';
         el.style.maxWidth = 'none';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+        wrap.appendChild(el.cloneNode(true));
+        document.body.appendChild(wrap);
+        await new Promise(r => setTimeout(r, 400));
         window.html2pdf().set({
           margin: 8,
           filename: `e-ticket-reunusa-${code}.pdf`,
@@ -280,7 +285,8 @@
           html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
           pagebreak: { mode: ['avoid-all', 'css'] },
-        }).from(el).save().finally(() => {
+        }).from(wrap.firstElementChild).save().finally(() => {
+          wrap.remove();
           btn.disabled = false; btn.textContent = orig;
         });
       });
