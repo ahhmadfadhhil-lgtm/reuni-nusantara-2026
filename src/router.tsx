@@ -13,6 +13,17 @@ function DefaultErrorComponent() {
   );
 }
 
+function DefaultNotFoundComponent() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 text-center text-foreground">
+      <div>
+        <h1 className="text-7xl font-bold">404</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Page not found.</p>
+      </div>
+    </div>
+  );
+}
+
 export const getRouter = () => {
   const queryClient = new QueryClient();
 
@@ -22,6 +33,7 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
     defaultErrorComponent: DefaultErrorComponent,
+    defaultNotFoundComponent: DefaultNotFoundComponent,
   });
 
   return router;
