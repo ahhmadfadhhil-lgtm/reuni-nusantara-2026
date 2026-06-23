@@ -11,6 +11,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- html2pdf untuk unduh e-ticket langsung tanpa pindah halaman -->
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
 
     <!-- Pembayaran: VERIFIKASI MANUAL oleh panitia (QRIS + transfer bank + upload bukti). -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -793,9 +795,79 @@
           sektorWrap.classList.toggle('disabled', !yes);
           if (!yes) {
             document.querySelectorAll('input[name="sektor"]').forEach((c) => (c.checked = false));
+          } else {
+            refreshSektorQuota();
           }
         });
       });
+
+      // ====== Sektor Quota (max 120 per sektor, max 3 pilihan per pendaftar) ======
+      const SEKTOR_MAX = 120;
+      const SEKTOR_PICK_MAX = 3;
+      const sektorCounts = {};
+
+      async function loadSektorCounts() {
+        try {
+          const { data, error } = await sb
+            .from('registrations')
+            .select('pre_event_sectors')
+            .eq('pre_event', true);
+          if (error) { console.warn('Gagal ambil kuota sektor:', error); return; }
+          opts.sektor.forEach((s) => { sektorCounts[s] = 0; });
+          (data || []).forEach((row) => {
+            const arr = Array.isArray(row.pre_event_sectors) ? row.pre_event_sectors : [];
+            arr.forEach((s) => {
+              if (sektorCounts[s] == null) sektorCounts[s] = 0;
+              sektorCounts[s] += 1;
+            });
+          });
+          refreshSektorQuota();
+        } catch (e) { console.warn('loadSektorCounts error', e); }
+      }
+
+      function refreshSektorQuota() {
+        document.querySelectorAll('input[name="sektor"]').forEach((c) => {
+          const count = sektorCounts[c.value] || 0;
+          const full = count >= SEKTOR_MAX;
+          const label = c.nextElementSibling;
+          if (full) {
+            c.checked = false;
+            c.disabled = true;
+            if (label) {
+              label.style.opacity = '0.45';
+              label.style.cursor = 'not-allowed';
+              const txt = label.querySelector('span:last-child');
+              if (txt && !txt.dataset.fullTagged) {
+                txt.textContent = txt.textContent + ' (Kuota Penuh)';
+                txt.dataset.fullTagged = '1';
+              }
+            }
+          } else {
+            c.disabled = false;
+            if (label) { label.style.opacity = ''; label.style.cursor = ''; }
+          }
+        });
+      }
+
+      function bindSektorLimit() {
+        document.querySelectorAll('input[name="sektor"]').forEach((c) => {
+          c.addEventListener('change', (e) => {
+            if (c.disabled) { c.checked = false; return; }
+            if (c.checked && (sektorCounts[c.value] || 0) >= SEKTOR_MAX) {
+              c.checked = false;
+              showToast('Kuota penuh, silahkan memilih sektor lain.', true);
+              return;
+            }
+            const checked = document.querySelectorAll('input[name="sektor"]:checked');
+            if (checked.length > SEKTOR_PICK_MAX) {
+              c.checked = false;
+              showToast(`Maksimal ${SEKTOR_PICK_MAX} sektor per pendaftar.`, true);
+            }
+          });
+        });
+      }
+      bindSektorLimit();
+      loadSektorCounts();
 
       // ====== Show "Lainnya" input for sumberInfo ======
       const sumberLainnyaWrap = document.getElementById('sumberInfoLainnyaWrap');
@@ -893,8 +965,18 @@
           setErr(g, bad); if (bad) ok = false;
         });
         if (getRadio('preEvent') === 'Ya') {
-          const bad = getChecks('sektor').length === 0;
+          const picks = getChecks('sektor');
+          const bad = picks.length === 0;
           setErr('sektor', bad); if (bad) ok = false;
+          if (picks.length > SEKTOR_PICK_MAX) {
+            showToast(`Maksimal ${SEKTOR_PICK_MAX} sektor per pendaftar.`, true);
+            ok = false;
+          }
+          const full = picks.find((s) => (sektorCounts[s] || 0) >= SEKTOR_MAX);
+          if (full) {
+            showToast('Kuota penuh, silahkan memilih sektor lain.', true);
+            ok = false;
+          }
         } else {
           setErr('sektor', false);
         }
@@ -1066,10 +1148,8 @@
         btn.innerHTML = originalText;
 
         if (donorVerified) {
-          showToast('Pendaftaran berhasil! Mengarahkan ke halaman tiket...');
-          setTimeout(() => {
-            window.location.href = '/ticket.html?code=' + encodeURIComponent(regCode);
-          }, 900);
+          showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
+          await downloadETicket(regCode);
           return;
         }
 
@@ -1177,12 +1257,95 @@
           return;
         }
 
-        showToast('Bukti terkirim! Mengarahkan ke halaman tiket...');
-        const target = '/ticket.html?code=' + encodeURIComponent(pendingRegCode);
+        showToast('Bukti terkirim! Menyiapkan unduhan e-ticket...');
+        const codeForDl = pendingRegCode;
         pendingRegCode = null;
         try { localStorage.removeItem('reunusa_pending_payment'); } catch (_) {}
-        setTimeout(() => { window.location.href = target; }, 900);
+        closeQrisModal();
+        await downloadETicket(codeForDl);
       });
+
+      // ====== Direct E-Ticket Download (tanpa pindah halaman ke ticket.html) ======
+      function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+      function buildTicketHtml(d) {
+        const ok = String(d.payment_status || '').toLowerCase() === 'success';
+        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+        return `
+        <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
+          <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
+            <div style="font-size:12px;letter-spacing:0.32em;text-transform:uppercase;opacity:.85;">E-Ticket • Reunusa 2026</div>
+            <h1 style="font-family:'Anybody',sans-serif;font-weight:700;font-size:44px;line-height:1;margin:0;">REUNUSA<br/>2026</h1>
+            <span style="align-self:flex-start;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">Reuni Akbar Alumni Husnul Khotimah</span>
+          </div>
+          <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;">
+            <h2 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:26px;margin:0 0 14px;">Main Event Reuni Nusantara</h2>
+            <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Lokasi</p>
+            <p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">Gor Putra Pondok Pesantren Husnul Khotimah</p>
+          </div>
+          <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;display:grid;grid-template-columns:1fr 1fr;gap:22px 28px;">
+            <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Nama</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${esc(d.full_name || '—')}</p></div>
+            <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Kode Tiket</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${esc(d.registration_code || '—')}</p></div>
+            <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Tanggal Event</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">25-26 Juli 2026</p></div>
+            <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Waktu</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">08:00 - 20:00 WIB</p></div>
+          </div>
+          <div style="padding:22px 28px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
+            <div>
+              <h3 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0 0 12px;">Informasi Tiket</h3>
+              <p style="margin:0;font-size:14px;line-height:1.55;">Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event.</p>
+              <div style="margin-top:10px;display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;${ok?'background:#dcfce7;color:#166534;':'background:#fef9c3;color:#854d0e;'}">${ok?'● Terverifikasi':'● Menunggu Pembayaran'}</div>
+            </div>
+            <div style="background:#fff;border:1px solid #D2DBD4;border-radius:16px;padding:14px;text-align:center;">
+              ${ok?`<img src="${qrSrc}" alt="QR ${esc(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;display:block;margin-top:8px;">Kode: ${esc(d.registration_code)}</small>`:'<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'}
+            </div>
+          </div>
+        </div>`;
+      }
+      async function waitForAssets(root) {
+        const imgs = Array.from(root.querySelectorAll('img'));
+        await Promise.all(imgs.map(img => img.complete ? Promise.resolve() :
+          new Promise(res => { img.onload = res; img.onerror = res; })));
+        if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (_) {} }
+      }
+      async function downloadETicket(code) {
+        if (!code) return;
+        if (!window.html2pdf) { showToast('Library PDF gagal dimuat. Coba muat ulang halaman.', true); return; }
+        try {
+          let row = null;
+          try {
+            const { data } = await sb.rpc('get_registration_by_code', { _registration_code: code });
+            row = Array.isArray(data) ? data[0] : data;
+          } catch (_) {}
+          if (!row) {
+            const { data } = await sb.from('registrations')
+              .select('full_name, registration_code, payment_status')
+              .eq('registration_code', code).limit(1);
+            row = Array.isArray(data) ? data[0] : null;
+          }
+          if (!row) row = { full_name: '', registration_code: code, payment_status: 'Pending' };
+
+          const wrap = document.createElement('div');
+          wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
+          wrap.innerHTML = buildTicketHtml(row);
+          document.body.appendChild(wrap);
+          await waitForAssets(wrap);
+          await new Promise(r => setTimeout(r, 150));
+          const pdfWidth = 848;
+          const pdfHeight = Math.ceil(wrap.scrollHeight);
+          await window.html2pdf().set({
+            margin: 0,
+            filename: `e-ticket-reunusa-${code}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, x: 0, y: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
+            jsPDF: { unit: 'px', format: [pdfWidth, pdfHeight], orientation: 'portrait' },
+            pagebreak: { mode: [] },
+          }).from(wrap).save();
+          wrap.remove();
+          showToast('E-ticket berhasil diunduh.');
+        } catch (e) {
+          console.error(e);
+          showToast('Gagal mengunduh tiket: ' + (e.message || e), true);
+        }
+      }
     </script>
   </body>
 </html>
