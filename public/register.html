@@ -642,7 +642,7 @@
 
       // ====== Opsi ======
       const opts = {
-        pekerjaan: ['Wiraswasta', 'Wirausaha', 'PNS', 'Akademisi', 'Freelance', 'Lainnya'],
+        pekerjaan: ['Mahasiswa', 'Wiraswasta', 'Wirausaha', 'PNS', 'Akademisi', 'Freelance', 'Lainnya'],
         sumberInfo: ['Instagram @reunusa.islah', 'Facebook Reunusa Islah', 'Group WhatsApp',
           'Personal Chat WhatsApp', 'Teman', 'Lainnya'],
         preEvent: ['Ya', 'Tidak'],
@@ -934,28 +934,6 @@
           btn.disabled = false;
           btn.innerHTML = originalText;
           return;
-        }
-
-        // ====== Cek duplikat email ======
-        btn.innerHTML = 'Memeriksa email...';
-        const emailVal = document.getElementById('email').value.trim().toLowerCase();
-        try {
-          const { data: dup, error: dupErr } = await sb
-            .from('registrations')
-            .select('registration_code, payment_status')
-            .ilike('email', emailVal)
-            .limit(1);
-          if (!dupErr && Array.isArray(dup) && dup.length > 0) {
-            setErr('email', true);
-            alert('Anda sudah mendaftar, jika belum payment silahkan selesaikan.');
-            showToast('Email sudah terdaftar. Selesaikan pembayaran via "Cari Tiket Saya".', true);
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-            goTo(1);
-            return;
-          }
-        } catch (e) {
-          console.warn('Cek duplikat email gagal (lanjut):', e);
         }
 
         btn.innerHTML = 'Mengirim...';
