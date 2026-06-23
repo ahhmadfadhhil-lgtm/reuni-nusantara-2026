@@ -1148,10 +1148,8 @@
         btn.innerHTML = originalText;
 
         if (donorVerified) {
-          showToast('Pendaftaran berhasil! Mengarahkan ke halaman tiket...');
-          setTimeout(() => {
-            window.location.href = '/ticket.html?code=' + encodeURIComponent(regCode);
-          }, 900);
+          showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
+          await downloadETicket(regCode);
           return;
         }
 
