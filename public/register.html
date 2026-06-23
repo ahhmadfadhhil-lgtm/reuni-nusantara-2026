@@ -965,8 +965,18 @@
           setErr(g, bad); if (bad) ok = false;
         });
         if (getRadio('preEvent') === 'Ya') {
-          const bad = getChecks('sektor').length === 0;
+          const picks = getChecks('sektor');
+          const bad = picks.length === 0;
           setErr('sektor', bad); if (bad) ok = false;
+          if (picks.length > SEKTOR_PICK_MAX) {
+            showToast(`Maksimal ${SEKTOR_PICK_MAX} sektor per pendaftar.`, true);
+            ok = false;
+          }
+          const full = picks.find((s) => (sektorCounts[s] || 0) >= SEKTOR_MAX);
+          if (full) {
+            showToast('Kuota penuh, silahkan memilih sektor lain.', true);
+            ok = false;
+          }
         } else {
           setErr('sektor', false);
         }
