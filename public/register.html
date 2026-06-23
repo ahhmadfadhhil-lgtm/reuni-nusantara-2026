@@ -795,9 +795,79 @@
           sektorWrap.classList.toggle('disabled', !yes);
           if (!yes) {
             document.querySelectorAll('input[name="sektor"]').forEach((c) => (c.checked = false));
+          } else {
+            refreshSektorQuota();
           }
         });
       });
+
+      // ====== Sektor Quota (max 120 per sektor, max 3 pilihan per pendaftar) ======
+      const SEKTOR_MAX = 120;
+      const SEKTOR_PICK_MAX = 3;
+      const sektorCounts = {};
+
+      async function loadSektorCounts() {
+        try {
+          const { data, error } = await sb
+            .from('registrations')
+            .select('pre_event_sectors')
+            .eq('pre_event', true);
+          if (error) { console.warn('Gagal ambil kuota sektor:', error); return; }
+          opts.sektor.forEach((s) => { sektorCounts[s] = 0; });
+          (data || []).forEach((row) => {
+            const arr = Array.isArray(row.pre_event_sectors) ? row.pre_event_sectors : [];
+            arr.forEach((s) => {
+              if (sektorCounts[s] == null) sektorCounts[s] = 0;
+              sektorCounts[s] += 1;
+            });
+          });
+          refreshSektorQuota();
+        } catch (e) { console.warn('loadSektorCounts error', e); }
+      }
+
+      function refreshSektorQuota() {
+        document.querySelectorAll('input[name="sektor"]').forEach((c) => {
+          const count = sektorCounts[c.value] || 0;
+          const full = count >= SEKTOR_MAX;
+          const label = c.nextElementSibling;
+          if (full) {
+            c.checked = false;
+            c.disabled = true;
+            if (label) {
+              label.style.opacity = '0.45';
+              label.style.cursor = 'not-allowed';
+              const txt = label.querySelector('span:last-child');
+              if (txt && !txt.dataset.fullTagged) {
+                txt.textContent = txt.textContent + ' (Kuota Penuh)';
+                txt.dataset.fullTagged = '1';
+              }
+            }
+          } else {
+            c.disabled = false;
+            if (label) { label.style.opacity = ''; label.style.cursor = ''; }
+          }
+        });
+      }
+
+      function bindSektorLimit() {
+        document.querySelectorAll('input[name="sektor"]').forEach((c) => {
+          c.addEventListener('change', (e) => {
+            if (c.disabled) { c.checked = false; return; }
+            if (c.checked && (sektorCounts[c.value] || 0) >= SEKTOR_MAX) {
+              c.checked = false;
+              showToast('Kuota penuh, silahkan memilih sektor lain.', true);
+              return;
+            }
+            const checked = document.querySelectorAll('input[name="sektor"]:checked');
+            if (checked.length > SEKTOR_PICK_MAX) {
+              c.checked = false;
+              showToast(`Maksimal ${SEKTOR_PICK_MAX} sektor per pendaftar.`, true);
+            }
+          });
+        });
+      }
+      bindSektorLimit();
+      loadSektorCounts();
 
       // ====== Show "Lainnya" input for sumberInfo ======
       const sumberLainnyaWrap = document.getElementById('sumberInfoLainnyaWrap');
