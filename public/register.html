@@ -412,8 +412,9 @@
                 placeholder="Rp 10.000"
               />
               <p class="field-hint">Min. Rp10.000 untuk memenuhi batas minimum transaksi pada sistem pembayaran.</p>
-              <p class="field-hint" style="color:#1e2a20;">Jika Anda pernah berdonasi sebelumnya, silahkan isi dengan nominal minimal 0 rupiah.</p>
-              <p id="nominalDonorHint" class="field-hint hidden" style="color:#0e7c46;font-weight:500;">Gratis karena Anda sudah berdonasi 🎉</p>
+              <p id="nominalDonorHint" class="field-hint hidden" style="color:#0e7c46;font-weight:500;">
+                Gratis karena Anda sudah berdonasi 🎉
+              </p>
               <p class="field-error" data-error-for="nominal">Nominal minimum Rp 10.000.</p>
             </div>
 
@@ -440,11 +441,26 @@
             </div>
 
             <!-- ============ Pembayaran Manual ============ -->
-            <div id="manualPaymentBlock" class="field-group" style="margin-top:24px;padding:18px;border:1px solid rgba(45,117,86,0.25);border-radius:14px;background:#fff;">
+            <div
+              id="manualPaymentBlock"
+              class="field-group"
+              style="margin-top:24px;padding:18px;border:1px solid rgba(45,117,86,0.25);border-radius:14px;background:#fff;"
+            >
               <h3 class="section-title" style="margin-bottom:6px;">Pembayaran Manual</h3>
-              <p class="field-hint" style="margin-bottom:6px;">Setelah Anda klik tombol pembayaran di bawah, akan muncul pop-up berisi <strong>QRIS</strong> dan kolom unggah bukti pembayaran.</p>
-              <p class="field-hint">Apabila halaman tertutup sebelum bukti diunggah, Anda tetap bisa mengunggahnya kapan saja melalui menu <strong>“Cari Tiket Saya”</strong> di halaman utama.</p>
-              <button type="button" id="reopenQrisBtn" class="btn-secondary hidden" style="margin-top:14px;height:48px;width:100%;">
+              <p class="field-hint" style="margin-bottom:6px;">
+                Setelah Anda klik tombol pembayaran di bawah, akan muncul pop-up berisi <strong>QRIS</strong> dan kolom
+                unggah bukti pembayaran.
+              </p>
+              <p class="field-hint">
+                Apabila halaman tertutup sebelum bukti diunggah, Anda tetap bisa mengunggahnya kapan saja melalui menu
+                <strong>“Cari Tiket Saya”</strong> di halaman utama.
+              </p>
+              <button
+                type="button"
+                id="reopenQrisBtn"
+                class="btn-secondary hidden"
+                style="margin-top:14px;height:48px;width:100%;"
+              >
                 Buka Kembali QRIS &amp; Upload Bukti
               </button>
             </div>
@@ -509,9 +525,25 @@
           <div class="sm:col-span-2 lg:col-span-1">
             <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white sm:text-sm">Hubungi Panitia</p>
             <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
-              <li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla (Akhwat)</a></li>
-              <li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal (Ikhwan)</a></li>
-              <li><a href="https://instagram.com/reunusa.islah" target="_blank" rel="noopener" class="hover:text-yellow-200">Instagram @reunusa.islah</a></li>
+              <li>
+                <a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200"
+                  >+62 821-1894-2672 Najla (Akhwat)</a
+                >
+              </li>
+              <li>
+                <a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200"
+                  >+62 851-5079-7419 Naufal (Ikhwan)</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://instagram.com/reunusa.islah"
+                  target="_blank"
+                  rel="noopener"
+                  class="hover:text-yellow-200"
+                  >Instagram @reunusa.islah</a
+                >
+              </li>
               <li><a href="mailto:reunusaislah@gmail.com" class="hover:text-yellow-200">reunusaislah@gmail.com</a></li>
             </ul>
           </div>
@@ -531,24 +563,57 @@
     <div id="toast" class="toast"></div>
 
     <!-- ============ POPUP: QRIS + Upload Bukti Bayar ============ -->
-    <div id="qrisModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:16px;overflow-y:auto;">
-      <div style="background:#faf6f0;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,0.35);position:relative;font-family:'Alexandria',sans-serif;">
-        <button type="button" id="qrisCloseBtn" aria-label="Tutup" style="position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:#122f18;font-size:24px;line-height:1;">×</button>
+    <div
+      id="qrisModal"
+      style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:16px;overflow-y:auto;"
+    >
+      <div
+        style="background:#faf6f0;border-radius:20px;max-width:520px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,0.35);position:relative;font-family:'Alexandria',sans-serif;"
+      >
+        <button
+          type="button"
+          id="qrisCloseBtn"
+          aria-label="Tutup"
+          style="position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:#122f18;font-size:24px;line-height:1;"
+        >
+          ×
+        </button>
         <h3 class="section-title" style="margin-bottom:4px;">Pembayaran via QRIS</h3>
-        <p class="field-hint" id="qrisCodeNote" style="margin-bottom:14px;">Pendaftaran Anda tersimpan. Scan QRIS di bawah lalu unggah bukti pembayaran.</p>
-        <div style="text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(45,117,86,0.25);padding:12px;">
-          <img src="/assets/qris-reunusa.jpeg" alt="QRIS Reunusa" style="max-width:100%;width:320px;height:auto;display:block;margin:0 auto;border-radius:10px;" />
+        <p class="field-hint" id="qrisCodeNote" style="margin-bottom:14px;">
+          Pendaftaran Anda tersimpan. Scan QRIS di bawah lalu unggah bukti pembayaran.
+        </p>
+        <div
+          style="text-align:center;background:#fff;border-radius:14px;border:1px solid rgba(45,117,86,0.25);padding:12px;"
+        >
+          <img
+            src="/assets/qris-reunusa.jpeg"
+            alt="QRIS Reunusa"
+            style="max-width:100%;width:320px;height:auto;display:block;margin:0 auto;border-radius:10px;"
+          />
         </div>
-        <div style="margin-top:14px;background:#fff;border:1px solid rgba(45,117,86,0.25);border-radius:10px;padding:12px;font-size:14px;color:#1e2a20;">
+        <div
+          style="margin-top:14px;background:#fff;border:1px solid rgba(45,117,86,0.25);border-radius:10px;padding:12px;font-size:14px;color:#1e2a20;"
+        >
           Atau transfer <strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong>.
         </div>
-        <div style="margin-top:10px;background:#fff7ed;border:1px solid #fdba74;color:#7c2d12;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;">
-          ⚠️ Saat ini fitur payment gateway masih dalam proses pengembangan, silahkan memakai QRIS dan upload bukti transfer Anda.
+        <div
+          style="margin-top:10px;background:#fff7ed;border:1px solid #fdba74;color:#7c2d12;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;"
+        >
+          ⚠️ Saat ini fitur payment gateway masih dalam proses pengembangan, silahkan memakai QRIS dan upload bukti
+          transfer Anda.
         </div>
         <div class="field-group" style="margin-top:18px;">
-          <label class="field-label" for="qrisBukti">Upload Bukti Pembayaran <span style="color:#b91c1c">*</span></label>
+          <label class="field-label" for="qrisBukti"
+            >Upload Bukti Pembayaran <span style="color:#b91c1c">*</span></label
+          >
           <p class="field-hint" style="margin-bottom:8px;">Format JPG/PNG, maks. 5MB.</p>
-          <input id="qrisBukti" type="file" accept="image/*" class="input-base" style="padding:10px 12px;height:auto;" />
+          <input
+            id="qrisBukti"
+            type="file"
+            accept="image/*"
+            class="input-base"
+            style="padding:10px 12px;height:auto;"
+          />
           <p id="qrisError" class="field-error">Bukti pembayaran wajib diunggah (gambar, maks 5MB).</p>
         </div>
         <button type="button" id="qrisUploadBtn" class="btn-primary" style="width:100%;">
@@ -1119,6 +1184,5 @@
         setTimeout(() => { window.location.href = target; }, 900);
       });
     </script>
-
   </body>
 </html>
