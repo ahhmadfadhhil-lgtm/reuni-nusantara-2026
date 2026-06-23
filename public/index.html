@@ -836,7 +836,7 @@
               margin: 0,
               filename: `e-ticket-reunusa-${code}.pdf`,
               image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
+              html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, x: 0, y: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
               jsPDF: { unit: 'px', format: [pdfWidth, pdfHeight], orientation: 'portrait' },
               pagebreak: { mode: [] },
             }).from(wrap).save();
