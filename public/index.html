@@ -762,6 +762,18 @@
           btn.disabled = false; btn.innerHTML = orig;
         });
 
+        async function waitForTicketAssets(root) {
+          try { if (document.fonts?.ready) await document.fonts.ready; } catch (_) {}
+          const images = Array.from(root.querySelectorAll('img'));
+          await Promise.all(images.map((img) => {
+            if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.onload = resolve;
+              img.onerror = resolve;
+            });
+          }));
+        }
+
         // ====== Auto-download E-Ticket sebagai PDF (tanpa pindah halaman) ======
         function buildTicketHtml(d) {
           const ok = String(d.payment_status).toLowerCase() === 'success';
@@ -811,21 +823,23 @@
             const row = Array.isArray(data) ? data[0] : data;
             if (!row) throw new Error('Data tiket tidak ditemukan.');
 
-            // Render off-screen agar html2canvas dapat capture penuh.
+            // Render fixed-size capture root agar html2canvas tidak crop/zoom.
             const wrap = document.createElement('div');
-            wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+            wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
             wrap.innerHTML = buildTicketHtml(row);
             document.body.appendChild(wrap);
-            // Tunggu QR/font load
-            await new Promise(r => setTimeout(r, 400));
+            await waitForTicketAssets(wrap);
+            await new Promise(r => setTimeout(r, 150));
+            const pdfWidth = 848;
+            const pdfHeight = Math.ceil(wrap.scrollHeight);
             await window.html2pdf().set({
-              margin: 8,
+              margin: 0,
               filename: `e-ticket-reunusa-${code}.pdf`,
               image: { type: 'jpeg', quality: 0.98 },
-              html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
-              jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-              pagebreak: { mode: ['avoid-all', 'css'] },
-            }).from(wrap.firstElementChild).save();
+              html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
+              jsPDF: { unit: 'px', format: [pdfWidth, pdfHeight], orientation: 'portrait' },
+              pagebreak: { mode: [] },
+            }).from(wrap).save();
             wrap.remove();
             showMsg('E-ticket berhasil diunduh.', 'ok');
           } catch (e) {
