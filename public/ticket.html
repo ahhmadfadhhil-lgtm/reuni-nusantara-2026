@@ -148,7 +148,7 @@
           <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true">
             <path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7.11 11.4 7.41 11.66a.999.999 0 0 0 1.18 0C12.89 21.4 20 15.25 20 10c0-4.42-3.58-8-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
           </svg>
-          <p class="value">GSG Aridha Nursyahbani</p>
+          <p class="value">Gor Putra Pondok Pesantren Husnul Khotimah</p>
         </div>
       </section>
 
@@ -169,7 +169,7 @@
           </div>
           <div>
             <p class="label">Waktu</p>
-            <p class="value">08:00 - 21:00 WIB</p>
+            <p class="value">08:00 - 20:00 WIB</p>
           </div>
         </div>
       </section>
@@ -264,6 +264,18 @@
         renderTicket(row);
       })();
 
+      async function waitForTicketAssets(root) {
+        try { if (document.fonts?.ready) await document.fonts.ready; } catch (_) {}
+        const images = Array.from(root.querySelectorAll('img'));
+        await Promise.all(images.map((img) => {
+          if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          });
+        }));
+      }
+
       // ---- Download as PDF (html2pdf.js) ----
       document.getElementById('btnPdf').addEventListener('click', async () => {
         const el = document.getElementById('ticketCard');
@@ -271,21 +283,28 @@
         const btn = document.getElementById('btnPdf');
         const orig = btn.textContent;
         btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
-        el.style.width = '800px';
-        el.style.maxWidth = 'none';
         const wrap = document.createElement('div');
-        wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
-        wrap.appendChild(el.cloneNode(true));
+        wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
+        const clone = el.cloneNode(true);
+        clone.id = 'ticketCardPdf';
+        clone.style.width = '800px';
+        clone.style.maxWidth = 'none';
+        clone.style.margin = '0';
+        clone.style.transform = 'none';
+        wrap.appendChild(clone);
         document.body.appendChild(wrap);
-        await new Promise(r => setTimeout(r, 400));
+        await waitForTicketAssets(wrap);
+        await new Promise(r => setTimeout(r, 150));
+        const pdfWidth = 848;
+        const pdfHeight = Math.ceil(wrap.scrollHeight);
         window.html2pdf().set({
-          margin: 8,
+          margin: 0,
           filename: `e-ticket-reunusa-${code}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css'] },
-        }).from(wrap.firstElementChild).save().finally(() => {
+          html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
+          jsPDF: { unit: 'px', format: [pdfWidth, pdfHeight], orientation: 'portrait' },
+          pagebreak: { mode: [] },
+        }).from(wrap).save().finally(() => {
           wrap.remove();
           btn.disabled = false; btn.textContent = orig;
         });
