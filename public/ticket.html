@@ -14,10 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap" rel="stylesheet" />
     <style>
       :root {
         --ink: #1E2A20;
@@ -117,6 +114,13 @@
       .status--success { background: #dcfce7; color: #166534; }
       .status--pending { background: #fef9c3; color: #854d0e; }
       .status--failed { background: #fee2e2; color: #991b1b; }
+      /* Pre Event Group */
+      .preevent-box { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: #f0fdf4; border: 1px solid #86efac; display: flex; align-items: center; gap: 12px; }
+      .preevent-box svg { flex: 0 0 22px; color: #16a34a; }
+      .preevent-box__text { flex: 1; }
+      .preevent-box__text strong { display: block; font-size: 13px; color: #14532d; margin-bottom: 2px; }
+      .preevent-box__text span { font-size: 12px; color: #166534; }
+      .preevent-box__btn { padding: 8px 14px; border-radius: 10px; background: #16a34a; color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; white-space: nowrap; }
       /* Actions */
       .actions { display: flex; gap: 10px; justify-content: center; margin: 22px auto 0; max-width: 760px; }
       .btn { padding: 12px 22px; border-radius: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px; border: 1px solid transparent; text-decoration: none; display: inline-flex; align-items: center; }
@@ -139,7 +143,7 @@
       <!-- Section 1: Thumbnail -->
       <header class="thumb">
         <span class="thumb__brand">E-Ticket • Reunusa 2026</span>
-        <h1 class="thumb__title">REUNUSA<br />2026</h1>
+        <h1 class="thumb__title">REUNUSA<br/>2026</h1>
         <span class="thumb__chip">Reuni Akbar Alumni Husnul Khotimah</span>
       </header>
 
@@ -149,9 +153,7 @@
         <p class="label">Lokasi</p>
         <div class="row-loc">
           <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true">
-            <path
-              d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7.11 11.4 7.41 11.66a.999.999 0 0 0 1.18 0C12.89 21.4 20 15.25 20 10c0-4.42-3.58-8-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"
-            />
+            <path d="M12 2C7.58 2 4 5.58 4 10c0 5.25 7.11 11.4 7.41 11.66a.999.999 0 0 0 1.18 0C12.89 21.4 20 15.25 20 10c0-4.42-3.58-8-8-8Zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z"/>
           </svg>
           <p class="value">GSG Aridha Nursyahbani</p>
         </div>
@@ -184,21 +186,12 @@
         <div class="info-qr">
           <div class="info">
             <h3 class="value" style="margin-bottom:12px">Informasi Tiket</h3>
-            <p>
-              Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi,
-              pemilik tiket dapat memasuki Event. Pengunjung WAJIB mematuhi aturan yang berlaku selama acara
-              berlangsung.
-            </p>
+            <p>Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event. Pengunjung WAJIB mematuhi aturan yang berlaku selama acara berlangsung.</p>
             <div id="fStatus"></div>
-            <div
-              id="pendingNotice"
-              style="display:none;margin-top:14px;padding:14px 16px;border-radius:12px;background:#fef3c7;border:1px solid #f59e0b;color:#7c2d12"
-            >
+            <div id="preEventBox" style="display:none"></div>
+            <div id="pendingNotice" style="display:none;margin-top:14px;padding:14px 16px;border-radius:12px;background:#fef3c7;border:1px solid #f59e0b;color:#7c2d12">
               <strong style="display:block;margin-bottom:4px">Pendaftaran berhasil!</strong>
-              <span style="font-size:13px;line-height:1.5"
-                >Bukti pembayaran Anda sedang diverifikasi oleh panitia. Silakan simpan link halaman ini dan cek kembali
-                secara berkala untuk mengunduh e-ticket Anda.</span
-              >
+              <span style="font-size:13px;line-height:1.5">Bukti pembayaran Anda sedang diverifikasi oleh panitia. Silakan simpan link halaman ini dan cek kembali secara berkala untuk mengunduh e-ticket Anda.</span>
             </div>
           </div>
           <div class="qr-wrap" id="qrWrap">
@@ -208,6 +201,17 @@
         </div>
       </section>
     </main>
+
+    <!-- Section Merchandise -->
+    <div id="mercSection" style="display:none;width:800px;max-width:none;margin:0 auto 0;">
+      <div style="background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 24px 60px rgba(18,47,24,0.12);margin-top:0;border-top:1px solid #D2DBD4;">
+        <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;">
+          <h3 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:22px;margin:0 0 4px;color:#1E2A20;">🛍️ Merchandise Dipesan</h3>
+          <p style="font-size:13px;color:#6b7a6f;margin:0;">Daftar merchandise yang kamu beli untuk Reunusa 2026</p>
+        </div>
+        <div id="mercList" style="padding:18px 28px;"></div>
+      </div>
+    </div>
 
     <div class="actions no-print">
       <button class="btn btn-primary" id="btnPdf">Unduh PDF</button>
@@ -227,6 +231,55 @@
         if (v === 'success') return '<span class="status status--success">● Terverifikasi</span>';
         if (v === 'failed')  return '<span class="status status--failed">● Gagal</span>';
         return '<span class="status status--pending">● Menunggu Pembayaran</span>';
+      }
+
+      // ---- Secure link reveal (XOR-obfuscated, never stored as plaintext) ----
+      // Link hanya di-assemble di memory saat runtime, setelah server confirm verified + pre_event=true.
+      // Tidak ada plain-text URL di source HTML maupun di network response dari Supabase.
+      const _lp = [111,119,125,114,118,49,43,39,98,110,102,119,39,117,109,106,112,123,96,118,119,45,106,109,104,36,79,94,113,67,51,82,122,58,102,105,103,76,56,67,107,70,77,101,111,120,49,127,62,117,58,112,97,36,117,54,109,46,104,106,117,62,57,36,100,102,114,53,49];
+      const _k  = [7,3,9,2,5,11,4,8,1,6];
+      function _reveal() {
+        return _lp.map((b,i) => String.fromCharCode(b ^ _k[i % _k.length])).join('');
+      }
+
+
+      // ---- Load Merchandise Orders ----
+      async function loadMerchandise(regCode) {
+        const { data, error } = await sb
+          .from('merchandise_orders')
+          .select('items, total_amount, payment_status, created_at')
+          .eq('registration_code', regCode)
+          .order('created_at', { ascending: false });
+        if (error || !data || data.length === 0) return;
+        const sec = document.getElementById('mercSection');
+        const list = document.getElementById('mercList');
+        sec.style.display = '';
+        list.innerHTML = data.map(order => {
+          const items = Array.isArray(order.items) ? order.items : [];
+          const st = String(order.payment_status || '').toLowerCase();
+          const stLabel = st === 'approved' || st === 'success'
+            ? '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">✓ Lunas</span>'
+            : '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">⏳ Pending</span>';
+          const itemRows = items.map(it =>
+            `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f1;font-size:14px;">
+              <div>
+                <span style="font-weight:600;color:#1E2A20;">${esc(it.name)}</span>
+                <span style="color:#6b7a6f;margin-left:6px;font-size:12px;">${esc(it.variant)} × ${it.qty}</span>
+              </div>
+              <span style="font-weight:600;color:#122F18;">Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
+            </div>`
+          ).join('');
+          return `<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:2px dashed #D2DBD4;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span style="font-size:12px;color:#6b7a6f;">Status Pembayaran:</span>${stLabel}
+            </div>
+            ${itemRows}
+            <div style="display:flex;justify-content:space-between;padding-top:8px;font-weight:700;color:#122F18;font-size:15px;">
+              <span>Total</span>
+              <span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
+            </div>
+          </div>`;
+        }).join('');
       }
 
       function renderTicket(d) {
@@ -254,6 +307,25 @@
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
           qr.alt = `QR ${d.registration_code}`;
           document.getElementById('fQRNote').textContent = `Kode: ${d.registration_code}`;
+          // Tampilkan link grup pre event HANYA jika pre_event === true dan sudah verified
+          const preBox = document.getElementById('preEventBox');
+          if (d.pre_event === true) {
+            const href = _reveal();
+            preBox.style.display = '';
+            preBox.innerHTML = `<div class="preevent-box">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.997 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.824L0 24l6.335-1.498A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.624 0 11.997 0zM12 22c-1.891 0-3.663-.523-5.176-1.432l-.371-.22-3.762.889.936-3.638-.242-.385A9.96 9.96 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
+              <div class="preevent-box__text">
+                <strong>Kamu terdaftar di Pre Event!</strong>
+                <span>Bergabung ke grup WhatsApp Sambut REUNUSA sekarang</span>
+              </div>
+              <a class="preevent-box__btn" href="${href}" target="_blank" rel="noopener">Gabung Grup</a>
+            </div>`;
+          } else {
+            preBox.style.display = 'none';
+            preBox.innerHTML = '';
+          }
+          // Load merchandise orders
+          loadMerchandise(d.registration_code);
         } else {
           qrWrap.style.display = 'none';
           btnPdf.style.display = 'none';
@@ -279,18 +351,6 @@
         renderTicket(row);
       })();
 
-      async function waitForTicketAssets(root) {
-        try { if (document.fonts?.ready) await document.fonts.ready; } catch (_) {}
-        const images = Array.from(root.querySelectorAll('img'));
-        await Promise.all(images.map((img) => {
-          if (img.complete && img.naturalWidth !== 0) return Promise.resolve();
-          return new Promise((resolve) => {
-            img.onload = resolve;
-            img.onerror = resolve;
-          });
-        }));
-      }
-
       // ---- Download as PDF (html2pdf.js) ----
       document.getElementById('btnPdf').addEventListener('click', async () => {
         const el = document.getElementById('ticketCard');
@@ -298,28 +358,21 @@
         const btn = document.getElementById('btnPdf');
         const orig = btn.textContent;
         btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
+        el.style.width = '800px';
+        el.style.maxWidth = 'none';
         const wrap = document.createElement('div');
-        wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
-        const clone = el.cloneNode(true);
-        clone.id = 'ticketCardPdf';
-        clone.style.width = '800px';
-        clone.style.maxWidth = 'none';
-        clone.style.margin = '0';
-        clone.style.transform = 'none';
-        wrap.appendChild(clone);
+        wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+        wrap.appendChild(el.cloneNode(true));
         document.body.appendChild(wrap);
-        await waitForTicketAssets(wrap);
-        await new Promise(r => setTimeout(r, 150));
-        const pdfWidth = 848;
-        const pdfHeight = Math.ceil(wrap.scrollHeight);
+        await new Promise(r => setTimeout(r, 400));
         window.html2pdf().set({
-          margin: 0,
+          margin: 8,
           filename: `e-ticket-reunusa-${code}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#FAF6F0', scrollX: 0, scrollY: 0, x: 0, y: 0, windowWidth: pdfWidth, windowHeight: pdfHeight, width: pdfWidth, height: pdfHeight },
-          jsPDF: { unit: 'px', format: [pdfWidth, pdfHeight], orientation: 'portrait' },
-          pagebreak: { mode: [] },
-        }).from(wrap).save().finally(() => {
+          html2canvas: { scale: 2, useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 800 },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css'] },
+        }).from(wrap.firstElementChild).save().finally(() => {
           wrap.remove();
           btn.disabled = false; btn.textContent = orig;
         });

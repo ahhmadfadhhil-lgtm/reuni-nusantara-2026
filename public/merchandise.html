@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<!-- REUNUSA 2026 — Halaman Merchandise -->
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merchandise Reunusa 2026</title>
+  <link rel="icon" type="image/png" href="/assets/pavicon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Alexandria', sans-serif; }
+    .font-display { font-family: 'Anybody', sans-serif; }
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      background: #122f18; color: #faf6f0; padding: 12px 20px;
+      border-radius: 10px; font-size: 14px; z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: none; white-space: nowrap;
+    }
+    .toast.show { display: block; animation: fadeUp .2s ease; }
+    .toast.err { background: #b91c1c; }
+    @keyframes fadeUp { from { opacity:0; transform: translateX(-50%) translateY(8px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+
+    /* Modal overlay */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-box {
+      background: #faf6f0; border-radius: 20px; width: 100%; max-width: 520px;
+      padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+      max-height: 90vh; overflow-y: auto; position: relative;
+    }
+
+    /* Floating cart */
+    #floatCart {
+      position: fixed; bottom: 24px; right: 20px; z-index: 400;
+      background: #122f18; color: #faf6f0; border-radius: 999px;
+      padding: 14px 20px; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 28px rgba(18,47,24,0.4); cursor: pointer;
+      font-weight: 600; font-size: 15px; transition: transform .15s;
+    }
+    #floatCart:hover { transform: scale(1.04); }
+    #cartBadge {
+      background: #fbbf24; color: #1c1917; border-radius: 999px;
+      min-width: 22px; height: 22px; font-size: 12px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; padding: 0 6px;
+    }
+
+    /* Product card */
+    .prod-card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(18,47,24,.08);
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .prod-card .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 700; background: #dcfce7; color: #166534;
+    }
+    select.var-select {
+      border: 1px solid rgba(45,117,86,0.3); border-radius: 8px;
+      padding: 8px 10px; font-size: 13px; width: 100%;
+      background: #faf6f0; color: #122f18; outline: none; cursor: pointer;
+      font-family: 'Alexandria', sans-serif;
+    }
+    select.var-select:focus { border-color: #122f18; }
+
+    /* Steps in checkout */
+    .step-tab { display: none; }
+    .step-tab.active { display: block; }
+
+    /* input */
+    .inp {
+      border: 1px solid rgba(45,117,86,0.3); border-radius: 10px;
+      padding: 12px 14px; font-size: 15px; width: 100%;
+      background: #fff; font-family: 'Alexandria', sans-serif; color: #122f18;
+      outline: none;
+    }
+    .inp:focus { border-color: #122f18; box-shadow: 0 0 0 3px rgba(18,47,24,0.08); }
+    .inp.invalid { border-color: #b91c1c; }
+    .btn-p {
+      background: #122f18; color: #faf6f0; border-radius: 10px;
+      padding: 13px 20px; font-weight: 600; font-size: 15px;
+      border: none; cursor: pointer; width: 100%; font-family: 'Alexandria', sans-serif;
+      transition: opacity .15s;
+    }
+    .btn-p:hover { opacity: .92; }
+    .btn-p:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-g {
+      background: transparent; color: #122f18; border: 1px solid #122f18;
+      border-radius: 10px; padding: 12px 20px; font-weight: 600; font-size: 15px;
+      cursor: pointer; width: 100%; font-family: 'Alexandria', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-[#faf6f0] text-[#1e2a20]">
+
+  <!-- NAVBAR -->
+  <header class="bg-[#122f18] border-b border-black/60">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-[100px] lg:px-20">
+      <a href="/index.html" class="flex items-center">
+        <img src="/assets/logo.png" alt="REUNUSA" class="h-9 w-auto max-w-[140px] object-contain object-left sm:h-10 lg:h-12" />
+      </a>
+      <nav class="hidden items-center gap-8 lg:flex">
+        <a href="/index.html" class="text-stone-100 hover:text-yellow-200">Beranda</a>
+        <a href="/merchandise.html" class="text-yellow-200 font-semibold">Merchandise</a>
+        <a href="/register.html" class="text-stone-100 hover:text-yellow-200">Daftar</a>
+      </nav>
+      <a href="/index.html" class="lg:hidden text-sm font-medium text-stone-100 hover:text-yellow-200">← Beranda</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="bg-[#122f18] px-5 py-10 text-center text-[#faf6f0] sm:py-14">
+    <div class="mx-auto max-w-3xl">
+      <p class="text-xs font-semibold uppercase tracking-widest text-yellow-300 mb-2">Official Store</p>
+      <h1 class="font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Merchandise Reunusa 2026</h1>
+      <p class="mt-3 text-base text-stone-300 sm:text-lg">Bawa pulang kenangan reuni dalam wujud nyata. Pembelian khusus untuk pendaftar Main Event.</p>
+    </div>
+  </section>
+
+  <!-- PRODUK GRID -->
+  <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+    <div id="productGrid" class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+  </section>
+
+  <!-- FLOATING CART -->
+  <div id="floatCart" onclick="openCart()">
+    <svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Keranjang
+    <span id="cartBadge">0</span>
+  </div>
+
+  <!-- ===== MODAL CHECKOUT ===== -->
+  <div id="cartModal" class="modal-bg" onclick="if(event.target===this&&checkoutStep===1)closeCart()">
+    <div class="modal-box">
+      <button onclick="closeCart()" style="position:absolute;top:14px;right:16px;background:none;border:0;font-size:22px;cursor:pointer;color:#122f18;line-height:1;">×</button>
+
+      <!-- Step 1: Isi Keranjang + Kode Tiket -->
+      <div id="stepCart" class="step-tab active">
+        <h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">Keranjang Belanja</h2>
+        <p class="text-sm text-[rgba(26,58,46,0.6)] mb-4">Masukkan Kode Tiket untuk melanjutkan checkout.</p>
+        <div id="cartItems" class="mb-4 space-y-3"></div>
+        <div id="cartEmpty" class="py-8 text-center text-[rgba(26,58,46,0.5)] text-sm">Keranjang masih kosong.</div>
+        <div id="cartTotal" class="hidden border-t border-[rgba(45,117,86,0.2)] pt-3 mb-4">
+          <div class="flex justify-between font-semibold text-[#122f18]">
+            <span>Total</span>
+            <span id="totalPrice">Rp 0</span>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-[#122f18] mb-1">Kode Tiket / Registration ID <span class="text-red-600">*</span></label>
+          <input id="ticketCodeInput" class="inp" placeholder="Contoh: RNS-ABCDEF" autocomplete="off" />
+          <p id="ticketCodeErr" class="text-red-600 text-xs mt-1 hidden"></p>
+        </div>
+        <button class="btn-p" id="btnCheckout">Lanjut ke Pembayaran →</button>
+      </div>
+
+      <!-- Step 2: Pembayaran -->
+      <div id="stepPayment" class="step-tab">
+        <h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">Pembayaran</h2>
+        <p id="payNote" class="text-sm text-[rgba(26,58,46,0.6)] mb-4"></p>
+        <div class="text-center bg-white rounded-2xl border border-[rgba(45,117,86,0.2)] p-4 mb-3">
+          <img src="/assets/qris-reunusa.jpeg" alt="QRIS Reunusa" class="w-72 max-w-full mx-auto rounded-xl" />
+        </div>
+        <div class="bg-white border border-[rgba(45,117,86,0.2)] rounded-xl p-3 text-sm text-[#1e2a20] mb-3">
+          Atau transfer ke:
+          <ul class="mt-2 space-y-1 pl-4 list-disc">
+            <li><strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong></li>
+            <li><strong>Bank BSI 7298853862</strong> a.n. <strong>ISLAH SINERGI INDONESIA</strong></li>
+          </ul>
+        </div>
+        <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3 text-xs mb-4">
+          ⚠️ Setelah transfer, unggah bukti pembayaran di bawah. Pesanan akan diverifikasi panitia.
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-[#122f18] mb-1">Upload Bukti Pembayaran <span class="text-red-600">*</span></label>
+          <p class="text-xs text-[rgba(26,58,46,0.6)] mb-2">Format JPG/PNG, maks. 5MB.</p>
+          <input id="mercBukti" type="file" accept="image/*" class="inp" style="padding:8px 12px;height:auto;" />
+          <p id="mercBuktiErr" class="text-red-600 text-xs mt-1 hidden">Bukti pembayaran wajib diunggah (gambar, maks. 5MB).</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="btn-g" onclick="goStep('stepCart','stepPayment')">← Kembali</button>
+          <button class="btn-p" id="btnPay">Kirim Pesanan</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Sukses -->
+      <div id="stepDone" class="step-tab text-center py-6">
+        <div class="text-5xl mb-4">🎉</div>
+        <h2 class="font-display text-2xl font-bold text-[#122f18] mb-2">Pesanan Terkirim!</h2>
+        <p class="text-sm text-[rgba(26,58,46,0.7)] mb-2">Bukti pembayaran Anda sudah kami terima.</p>
+        <p class="text-sm text-[rgba(26,58,46,0.7)] mb-6">Panitia akan memverifikasi dan menyiapkan merchandise Anda untuk diserahkan saat event.</p>
+        <button class="btn-p" onclick="closeCart()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- FOOTER -->
+  <footer class="bg-[#1e2a20] px-5 py-10 text-stone-100 sm:px-8 sm:py-12 lg:px-24 mt-8">
+    <div class="mx-auto max-w-7xl">
+      <div class="flex flex-col gap-3">
+        <img src="/assets/logo.png" alt="REUNUSA" class="h-12 w-auto max-w-[160px] object-contain object-left" />
+        <p class="text-lg font-semibold text-[#f4f6f4]">Reuni Nusantara</p>
+        <p class="max-w-md text-sm text-[#f4f6f4]/90">Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan Jawa Barat 45554.</p>
+      </div>
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white">Navigasi</p>
+          <ul class="mt-2 space-y-2 text-sm text-white/80">
+            <li><a href="/index.html" class="hover:text-yellow-200">Beranda</a></li>
+            <li><a href="/merchandise.html" class="hover:text-yellow-200">Merchandise</a></li>
+            <li><a href="/index.html#faq" class="hover:text-yellow-200">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white">Aksi Utama</p>
+          <ul class="mt-2 space-y-2 text-sm text-white/80">
+            <li><a href="/register.html" class="hover:text-yellow-200">Daftar</a></li>
+            <li><a href="/index.html#cari" class="hover:text-yellow-200">Cari Tiket</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[1.12px] text-white">Hubungi Panitia</p>
+          <ul class="mt-2 space-y-2 text-sm text-white/80">
+            <li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla</a></li>
+            <li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal</a></li>
+          </ul>
+        </div>
+      </div>
+      <hr class="my-6 border-white/15" />
+      <p class="text-center text-xs text-white/60">© 2026 REUNUSA. Hak Cipta Dilindungi.</p>
+    </div>
+  </footer>
+
+<script>
+  // ====== Supabase ======
+  const SUPABASE_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const fmt = (n) => 'Rp ' + Number(n).toLocaleString('id-ID');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  // ====== Katalog Produk ======
+  const PRODUCTS = [
+    {
+      id: 1, name: 'Gantungan Kunci', emoji: '🔑',
+      variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
+      varLabel: 'Pilih Motif',
+      price: 10000, priceOri: 15000, disc: 33
+    },
+    {
+      id: 2, name: 'Sticker', emoji: '🏷️',
+      variants: ['Logo Reunusa', 'A Place Called Home', 'Beda Generasi 1 Islah'],
+      varLabel: 'Pilih Motif',
+      price: 5000, priceOri: 7500, disc: 33
+    },
+    {
+      id: 3, name: 'Sticker Pack', emoji: '📦',
+      variants: ['Reunusa Sticker Pack'],
+      varLabel: 'Variasi',
+      price: 29000, priceOri: 40000, disc: 27
+    },
+    {
+      id: 4, name: 'Totebag', emoji: '👜',
+      variants: ['Kangen Al Husna'],
+      varLabel: 'Variasi',
+      price: 65000, priceOri: 99000, disc: 34
+    },
+    {
+      id: 5, name: 'Tumbler', emoji: '🥤',
+      variants: ['Tumbler Reunusa'],
+      varLabel: 'Variasi',
+      price: 129000, priceOri: 189000, disc: 32
+    },
+    {
+      id: 6, name: 'Topi', emoji: '🧢',
+      variants: ['Semua Kangen HK'],
+      varLabel: 'Variasi',
+      price: 65000, priceOri: 99000, disc: 34
+    },
+    {
+      id: 7, name: 'Enamel Pin', emoji: '📌',
+      variants: ['Logo Reunusa'],
+      varLabel: 'Variasi',
+      price: 39000, priceOri: 59000, disc: 34
+    },
+    {
+      id: 8, name: 'Bundling Starter Pack', emoji: '🎒',
+      variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
+      varLabel: 'Pilih Motif Ganci',
+      desc: 'Sticker Pack + Gantungan Kunci',
+      price: 35000, priceOri: 55000, disc: 29
+    },
+    {
+      id: 9, name: 'Bundling Standard Pack', emoji: '🛍️',
+      variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
+                 'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
+      varLabel: 'Pilih Totebag/Topi & Motif Ganci',
+      desc: 'Totebag/Topi + Sticker Pack + Gantungan Kunci',
+      price: 89000, priceOri: 154000, disc: 42
+    },
+    {
+      id: 10, name: 'Bundling Favorite Pack', emoji: '⭐',
+      variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
+                 'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
+      varLabel: 'Pilih Totebag/Topi & Motif Ganci',
+      desc: 'Totebag/Topi + Enamel Pin + Gantungan Kunci',
+      price: 99000, priceOri: 173000, disc: 43
+    },
+    {
+      id: 11, name: 'Bundling Signature Pack', emoji: '✍️',
+      variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
+      varLabel: 'Pilih Motif Ganci',
+      desc: 'Tumbler + Sticker Pack + Gantungan Kunci',
+      price: 159000, priceOri: 244000, disc: 35
+    },
+    {
+      id: 12, name: 'Bundling Collector Pack', emoji: '💎',
+      variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
+                 'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
+      varLabel: 'Pilih Totebag/Topi & Motif Ganci',
+      desc: 'Tumbler + Totebag/Topi + Sticker Pack + Gantungan Kunci',
+      price: 199000, priceOri: 362000, disc: 45
+    },
+  ];
+
+  // ====== Render Kartu Produk ======
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = PRODUCTS.map(p => `
+      <div class="prod-card p-4" data-pid="${p.id}">
+        <div class="text-4xl mb-3 text-center bg-[#f0fdf4] rounded-xl py-4">${p.emoji}</div>
+        <div class="flex-1 flex flex-col">
+          <div class="flex items-start justify-between gap-2 mb-1">
+            <h3 class="font-semibold text-[#122f18] text-base leading-tight">${esc(p.name)}</h3>
+            <span class="badge flex-shrink-0">-${p.disc}%</span>
+          </div>
+          ${p.desc ? `<p class="text-xs text-[rgba(26,58,46,0.55)] mb-2">${esc(p.desc)}</p>` : ''}
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-[rgba(26,58,46,0.55)] uppercase tracking-wide mb-1">${esc(p.varLabel)}</label>
+            ${p.variants.length > 1
+              ? `<select class="var-select" data-pid="${p.id}">
+                  ${p.variants.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}
+                </select>`
+              : `<div class="text-sm font-medium text-[#122f18] px-2 py-1 bg-[#f0fdf4] rounded-lg">${esc(p.variants[0])}</div>`
+            }
+          </div>
+          <div class="mt-auto">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-lg font-bold text-[#122f18]">${fmt(p.price)}</span>
+              <span class="text-sm line-through text-[rgba(26,58,46,0.4)]">${fmt(p.priceOri)}</span>
+            </div>
+            <button
+              onclick="addToCart(${p.id})"
+              class="w-full py-2.5 px-4 bg-[#122f18] text-[#faf6f0] rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+            >
+              + Tambah ke Keranjang
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+  renderProducts();
+
+  // ====== Cart State ======
+  let cart = []; // [{pid, name, variant, price, qty}]
+  let checkoutStep = 1;
+  let validatedRegistration = null; // data row dari Supabase setelah validasi kode tiket
+
+  function addToCart(pid) {
+    const p = PRODUCTS.find(x => x.id === pid);
+    if (!p) return;
+    const sel = document.querySelector(`select.var-select[data-pid="${pid}"]`);
+    const variant = sel ? sel.value : p.variants[0];
+    const existing = cart.find(c => c.pid === pid && c.variant === variant);
+    if (existing) {
+      existing.qty++;
+    } else {
+      cart.push({ pid, name: p.name, variant, price: p.price, qty: 1 });
+    }
+    updateCartBadge();
+    showToast(`"${p.name}" ditambahkan ke keranjang ✓`);
+  }
+
+  function removeFromCart(pid, variant) {
+    cart = cart.filter(c => !(c.pid === pid && c.variant === variant));
+    updateCartBadge();
+    renderCartItems();
+  }
+
+  function updateCartBadge() {
+    const total = cart.reduce((s, c) => s + c.qty, 0);
+    document.getElementById('cartBadge').textContent = total;
+  }
+
+  function cartTotal() {
+    return cart.reduce((s, c) => s + c.price * c.qty, 0);
+  }
+
+  function renderCartItems() {
+    const box = document.getElementById('cartItems');
+    const empty = document.getElementById('cartEmpty');
+    const totalBox = document.getElementById('cartTotal');
+    if (cart.length === 0) {
+      box.innerHTML = '';
+      empty.style.display = '';
+      totalBox.classList.add('hidden');
+      return;
+    }
+    empty.style.display = 'none';
+    totalBox.classList.remove('hidden');
+    box.innerHTML = cart.map(c => `
+      <div class="flex items-center gap-3 bg-white rounded-xl p-3 border border-[rgba(45,117,86,0.15)]">
+        <div class="flex-1">
+          <p class="font-semibold text-sm text-[#122f18]">${esc(c.name)}</p>
+          <p class="text-xs text-[rgba(26,58,46,0.6)]">${esc(c.variant)} × ${c.qty}</p>
+        </div>
+        <div class="text-sm font-bold text-[#122f18]">${fmt(c.price * c.qty)}</div>
+        <button onclick="removeFromCart(${c.pid},'${esc(c.variant).replace(/'/g,"\\'")}'')" class="text-red-400 hover:text-red-600 text-lg leading-none">×</button>
+      </div>
+    `).join('');
+    document.getElementById('totalPrice').textContent = fmt(cartTotal());
+  }
+
+  // ====== Modal Open/Close ======
+  function openCart() {
+    goStep('stepCart', null);
+    renderCartItems();
+    document.getElementById('cartModal').classList.add('open');
+  }
+  function closeCart() {
+    document.getElementById('cartModal').classList.remove('open');
+  }
+  function goStep(show, hide) {
+    ['stepCart','stepPayment','stepDone'].forEach(id => {
+      document.getElementById(id).classList.toggle('active', id === show);
+    });
+  }
+
+  // ====== Checkout: Validasi Kode Tiket ======
+  document.getElementById('btnCheckout').addEventListener('click', async () => {
+    const errEl = document.getElementById('ticketCodeErr');
+    errEl.classList.add('hidden');
+    document.getElementById('ticketCodeInput').classList.remove('invalid');
+
+    if (cart.length === 0) {
+      showToast('Keranjang masih kosong!', true);
+      return;
+    }
+    const code = document.getElementById('ticketCodeInput').value.trim().toUpperCase();
+    if (!code) {
+      document.getElementById('ticketCodeInput').classList.add('invalid');
+      errEl.textContent = 'Kode Tiket wajib diisi.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    const btn = document.getElementById('btnCheckout');
+    btn.disabled = true;
+    btn.textContent = 'Memverifikasi kode...';
+
+    try {
+      const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
+      const row = Array.isArray(data) ? data[0] : data;
+      if (error || !row) {
+        document.getElementById('ticketCodeInput').classList.add('invalid');
+        errEl.textContent = 'Kode Tiket tidak valid. Silakan lakukan pendaftaran main event terlebih dahulu.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      validatedRegistration = row;
+      document.getElementById('payNote').textContent =
+        `Halo ${row.full_name || 'Kak'}! Total pembayaran: ${fmt(cartTotal())}. Scan QRIS atau transfer, lalu unggah bukti di bawah.`;
+      goStep('stepPayment', 'stepCart');
+    } catch(e) {
+      errEl.textContent = 'Gagal memverifikasi: ' + e.message;
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Lanjut ke Pembayaran →';
+    }
+  });
+
+  // ====== Checkout: Kirim Pesanan ======
+  document.getElementById('btnPay').addEventListener('click', async () => {
+    const buktiEl = document.getElementById('mercBukti');
+    const buktiErr = document.getElementById('mercBuktiErr');
+    const f = buktiEl.files && buktiEl.files[0];
+    const bad = !f || !/^image\//.test(f.type) || f.size > 5 * 1024 * 1024;
+    buktiErr.classList.toggle('hidden', !bad);
+    if (bad) return;
+
+    const btn = document.getElementById('btnPay');
+    btn.disabled = true;
+    btn.textContent = 'Mengunggah bukti...';
+
+    try {
+      // Upload bukti ke storage
+      const regCode = validatedRegistration.registration_code;
+      const ext = (f.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const path = `merch-${regCode}-${Date.now()}.${ext}`;
+      const { error: upErr } = await sb.storage.from('receipts').upload(path, f, { contentType: f.type, upsert: false });
+      if (upErr) throw new Error('Gagal upload: ' + upErr.message);
+
+      const { data: pub } = sb.storage.from('receipts').getPublicUrl(path);
+      const proofUrl = pub?.publicUrl || null;
+
+      // Simpan order merchandise ke tabel merchandise_orders
+      const orderItems = cart.map(c => ({ name: c.name, variant: c.variant, qty: c.qty, price: c.price }));
+      const { error: insErr } = await sb.from('merchandise_orders').insert({
+        registration_code: regCode,
+        full_name: validatedRegistration.full_name || '',
+        email: validatedRegistration.email || '',
+        items: orderItems,
+        total_amount: cartTotal(),
+        payment_proof_url: proofUrl,
+        payment_status: 'pending',
+      });
+      if (insErr) throw new Error('Gagal menyimpan pesanan: ' + insErr.message);
+
+      // Reset
+      cart = [];
+      updateCartBadge();
+      validatedRegistration = null;
+      buktiEl.value = '';
+      goStep('stepDone', 'stepPayment');
+    } catch(e) {
+      showToast(e.message, true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Kirim Pesanan';
+    }
+  });
+
+  // ====== Toast ======
+  let toastTimer;
+  function showToast(msg, isErr = false) {
+    clearTimeout(toastTimer);
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.toggle('err', isErr);
+    t.classList.add('show');
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>

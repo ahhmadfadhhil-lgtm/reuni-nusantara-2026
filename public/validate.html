@@ -53,6 +53,7 @@
       </div>
 
       <div id="resultBox"></div>
+      <div id="mercResult"></div>
     </div>
 
     <script>
@@ -105,6 +106,8 @@
             </div>
           </div>
         `;
+        // Load merchandise orders untuk kode ini
+        loadMerchandise(row.registration_code);
       }
 
       // Manual input
@@ -145,6 +148,41 @@
         document.getElementById('btnStart').disabled = false;
         document.getElementById('btnStop').disabled = true;
       });
+
+      // ---- Merchandise Orders (untuk panitia) ----
+      async function loadMerchandise(regCode) {
+        document.getElementById('mercResult').innerHTML = '';
+        const { data, error } = await sb
+          .from('merchandise_orders')
+          .select('items, total_amount, payment_status, created_at')
+          .eq('registration_code', regCode)
+          .order('created_at', { ascending: false });
+        if (error || !data || data.length === 0) {
+          document.getElementById('mercResult').innerHTML = '';
+          return;
+        }
+        const rows = data.map(order => {
+          const items = Array.isArray(order.items) ? order.items : [];
+          const st = String(order.payment_status || '').toLowerCase();
+          const stLabel = st === 'approved' || st === 'success' ? '✓ Lunas' : '⏳ Pending';
+          const stColor = (st === 'approved' || st === 'success') ? '#166534' : '#854d0e';
+          return `<div style="margin-bottom:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #D2DBD4;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;font-weight:700;color:${stColor}">${stLabel}</div>
+            ${items.map(it => `<div style="display:flex;justify-content:space-between;font-size:13px;color:#1E2A20;padding:3px 0;">
+              <span><b>${esc(it.name)}</b> — ${esc(it.variant)} ×${it.qty}</span>
+              <span>Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
+            </div>`).join('')}
+            <div style="border-top:1px dashed #D2DBD4;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:13px;">
+              <span>Total</span><span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
+            </div>
+          </div>`;
+        }).join('');
+        document.getElementById('mercResult').innerHTML = `
+          <div class="card" style="margin-top:0;">
+            <h3 style="font-size:15px;font-weight:700;color:#122f18;margin:0 0 10px;">🛍️ Merchandise Dipesan</h3>
+            ${rows}
+          </div>`;
+      }
     </script>
   </body>
 </html>

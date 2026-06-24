@@ -511,7 +511,7 @@
             <ul class="mt-2 space-y-2 text-sm text-white/80 sm:mt-3 sm:text-base">
               <li><a href="/index.html#beranda" class="hover:text-yellow-200">Beranda</a></li>
               <li><a href="/index.html#peringkat" class="hover:text-yellow-200">Leaderboard</a></li>
-              <li><a href="/index.html#detail" class="hover:text-yellow-200">Detail Acara</a></li>
+              <li><a href="/merchandise.html" class="hover:text-yellow-200">Merchandise</a></li>
               <li><a href="/index.html#faq" class="hover:text-yellow-200">FAQ</a></li>
             </ul>
           </div>
@@ -1138,6 +1138,29 @@
           payment_proof_url: proofUrl,
         };
 
+
+        btn.innerHTML = 'Memeriksa data...';
+        // === PRE-CHECK: cegah pendaftaran ganda berdasarkan email ===
+        const emailCheck = document.getElementById('email').value.trim().toLowerCase();
+        const { data: existing, error: checkErr } = await sb
+          .from('registrations')
+          .select('registration_code, payment_status')
+          .ilike('email', emailCheck)
+          .limit(1);
+        if (!checkErr && existing && existing.length > 0) {
+          const ex = existing[0];
+          const st = String(ex.payment_status || '').toLowerCase();
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          if (st === 'pending') {
+            showToast('Anda sudah terdaftar (status Pending). Silakan unggah bukti bayar atau cek tiket dengan kode ' + ex.registration_code + '.', true);
+          } else if (st === 'success') {
+            showToast('Email ini sudah terdaftar dan Sukses. Silakan cek tiket Anda di halaman Cari Tiket.', true);
+          } else {
+            showToast('Email ini sudah pernah digunakan (kode: ' + ex.registration_code + '). Hubungi panitia jika ada kendala.', true);
+          }
+          return;
+        }
 
         btn.innerHTML = 'Menyimpan pendaftaran...';
         // Insert registration. Status default = Pending sampai panitia verifikasi.
