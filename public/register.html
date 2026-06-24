@@ -642,6 +642,7 @@
       // ====== Donor verification state (set by email check) ======
       let donorVerified = false;
       let donorEmail = '';
+      let donorOrderId = ''; // order_id donasi terverifikasi → dipakai jadi registration_code agar sinkron.
 
       const emailInput = document.getElementById('email');
       const emailStatus = document.getElementById('emailCheckStatus');
