@@ -250,58 +250,77 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   // ====== Katalog Produk ======
+  // Gambar gantungan kunci per varian
+  const GANCI_IMGS = {
+    'Logo Reunusa': '/assets/merch/gantungan-kunci---logo-reunusa.webp',
+    'Kubah Al Husna': '/assets/merch/gantungan-kunci---kubah-al-husna.webp',
+    'Reminiscing Memories': '/assets/merch/gantungan-kunci---reminiscing-memories.webp',
+  };
+
   const PRODUCTS = [
     {
-      id: 1, name: 'Gantungan Kunci', emoji: '🔑',
+      id: 1, name: 'Gantungan Kunci',
+      // images berubah sesuai varian yang dipilih
+      images: Object.values(GANCI_IMGS),
+      varImages: GANCI_IMGS, // map variant → image
       variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
       varLabel: 'Pilih Motif',
       price: 10000, priceOri: 15000, disc: 33
     },
     {
-      id: 2, name: 'Sticker', emoji: '🏷️',
+      id: 2, name: 'Sticker',
+      images: [],
       variants: ['Logo Reunusa', 'A Place Called Home', 'Beda Generasi 1 Islah'],
       varLabel: 'Pilih Motif',
       price: 5000, priceOri: 7500, disc: 33
     },
     {
-      id: 3, name: 'Sticker Pack', emoji: '📦',
+      id: 3, name: 'Sticker Pack',
+      images: [],
       variants: ['Reunusa Sticker Pack'],
       varLabel: 'Variasi',
       price: 29000, priceOri: 40000, disc: 27
     },
     {
-      id: 4, name: 'Totebag', emoji: '👜',
+      id: 4, name: 'Totebag',
+      images: ['/assets/merch/totebag.webp'],
       variants: ['Kangen Al Husna'],
       varLabel: 'Variasi',
       price: 65000, priceOri: 99000, disc: 34
     },
     {
-      id: 5, name: 'Tumbler', emoji: '🥤',
+      id: 5, name: 'Tumbler',
+      images: ['/assets/merch/tumbler.webp'],
       variants: ['Tumbler Reunusa'],
       varLabel: 'Variasi',
       price: 129000, priceOri: 189000, disc: 32
     },
     {
-      id: 6, name: 'Topi', emoji: '🧢',
+      id: 6, name: 'Topi',
+      images: ['/assets/merch/topi.webp'],
       variants: ['Semua Kangen HK'],
       varLabel: 'Variasi',
       price: 65000, priceOri: 99000, disc: 34
     },
     {
-      id: 7, name: 'Enamel Pin', emoji: '📌',
+      id: 7, name: 'Enamel Pin',
+      images: ['/assets/merch/enamel.webp'],
       variants: ['Logo Reunusa'],
       varLabel: 'Variasi',
       price: 39000, priceOri: 59000, disc: 34
     },
     {
-      id: 8, name: 'Bundling Starter Pack', emoji: '🎒',
+      id: 8, name: 'Bundling Starter Pack',
+      images: ['/assets/merch/gantungan-kunci---logo-reunusa.webp'],
+      varImages: GANCI_IMGS,
       variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
       varLabel: 'Pilih Motif Ganci',
       desc: 'Sticker Pack + Gantungan Kunci',
       price: 35000, priceOri: 55000, disc: 29
     },
     {
-      id: 9, name: 'Bundling Standard Pack', emoji: '🛍️',
+      id: 9, name: 'Bundling Standard Pack',
+      images: ['/assets/merch/totebag.webp', '/assets/merch/topi.webp', '/assets/merch/gantungan-kunci---logo-reunusa.webp'],
       variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
                  'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
       varLabel: 'Pilih Totebag/Topi & Motif Ganci',
@@ -309,7 +328,8 @@
       price: 89000, priceOri: 154000, disc: 42
     },
     {
-      id: 10, name: 'Bundling Favorite Pack', emoji: '⭐',
+      id: 10, name: 'Bundling Favorite Pack',
+      images: ['/assets/merch/totebag.webp', '/assets/merch/enamel.webp', '/assets/merch/gantungan-kunci---logo-reunusa.webp'],
       variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
                  'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
       varLabel: 'Pilih Totebag/Topi & Motif Ganci',
@@ -317,14 +337,17 @@
       price: 99000, priceOri: 173000, disc: 43
     },
     {
-      id: 11, name: 'Bundling Signature Pack', emoji: '✍️',
+      id: 11, name: 'Bundling Signature Pack',
+      images: ['/assets/merch/tumbler.webp', '/assets/merch/gantungan-kunci---logo-reunusa.webp'],
+      varImages: GANCI_IMGS,
       variants: ['Logo Reunusa', 'Kubah Al Husna', 'Reminiscing Memories'],
       varLabel: 'Pilih Motif Ganci',
       desc: 'Tumbler + Sticker Pack + Gantungan Kunci',
       price: 159000, priceOri: 244000, disc: 35
     },
     {
-      id: 12, name: 'Bundling Collector Pack', emoji: '💎',
+      id: 12, name: 'Bundling Collector Pack',
+      images: ['/assets/merch/tumbler.webp', '/assets/merch/totebag.webp', '/assets/merch/topi.webp', '/assets/merch/gantungan-kunci---logo-reunusa.webp'],
       variants: ['Totebag + Logo Reunusa', 'Totebag + Kubah Al Husna', 'Totebag + Reminiscing Memories',
                  'Topi + Logo Reunusa', 'Topi + Kubah Al Husna', 'Topi + Reminiscing Memories'],
       varLabel: 'Pilih Totebag/Topi & Motif Ganci',
@@ -333,13 +356,72 @@
     },
   ];
 
+  // ====== Render image display per produk ======
+  function buildImageDisplay(p) {
+    if (!p.images || p.images.length === 0) {
+      // Placeholder kalau belum ada gambar
+      return `<div style="height:200px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-radius:14px 14px 0 0;">
+        <span style="font-size:48px;">${p.id===2||p.id===3?'🏷️':'📦'}</span>
+      </div>`;
+    }
+    if (p.images.length === 1) {
+      return `<div style="overflow:hidden;border-radius:14px 14px 0 0;background:#f8f8f8;height:200px;display:flex;align-items:center;justify-content:center;">
+        <img src="${p.images[0]}" alt="${esc(p.name)}" loading="lazy"
+          style="width:100%;height:200px;object-fit:cover;object-position:center;display:block;" />
+      </div>`;
+    }
+    // Multi-image: slideshow dots
+    const imgs = p.images.map((src, i) =>
+      `<img src="${src}" alt="${esc(p.name)} ${i+1}" loading="lazy" data-slide="${i}"
+        style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;transition:opacity .3s;opacity:${i===0?1:0};pointer-events:none;" />`
+    ).join('');
+    const dots = p.images.map((_, i) =>
+      `<button onclick="slideImg(${p.id},${i})" data-dot="${i}"
+        style="width:${i===0?'20px':'8px'};height:8px;border-radius:999px;border:none;cursor:pointer;background:${i===0?'#122f18':'rgba(18,47,24,0.3)'};padding:0;transition:all .2s;"></button>`
+    ).join('');
+    return `<div style="position:relative;overflow:hidden;border-radius:14px 14px 0 0;background:#f8f8f8;height:200px;" id="slide-wrap-${p.id}">
+      ${imgs}
+      <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;align-items:center;" id="slide-dots-${p.id}">
+        ${dots}
+      </div>
+    </div>`;
+  }
+
+  function slideImg(pid, idx) {
+    const wrap = document.getElementById('slide-wrap-' + pid);
+    const dotsBox = document.getElementById('slide-dots-' + pid);
+    if (!wrap || !dotsBox) return;
+    wrap.querySelectorAll('img[data-slide]').forEach(img => {
+      img.style.opacity = Number(img.dataset.slide) === idx ? '1' : '0';
+    });
+    dotsBox.querySelectorAll('button[data-dot]').forEach(btn => {
+      const active = Number(btn.dataset.dot) === idx;
+      btn.style.background = active ? '#122f18' : 'rgba(18,47,24,0.3)';
+      btn.style.width = active ? '20px' : '8px';
+    });
+  }
+
+  // Ketika varian gantungan kunci berubah, ganti gambar
+  function onGanciVarChange(pid, variant) {
+    const p = PRODUCTS.find(x => x.id === pid);
+    if (!p || !p.varImages) return;
+    const wrap = document.getElementById('slide-wrap-' + pid);
+    if (!wrap) return;
+    const imgs = wrap.querySelectorAll('img[data-slide]');
+    if (imgs.length > 0) {
+      // Update src gambar pertama ke varian yang dipilih
+      const src = p.varImages[variant];
+      if (src) imgs[0].src = src;
+    }
+  }
+
   // ====== Render Kartu Produk ======
   function renderProducts() {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = PRODUCTS.map(p => `
-      <div class="prod-card p-4" data-pid="${p.id}">
-        <div class="text-4xl mb-3 text-center bg-[#f0fdf4] rounded-xl py-4">${p.emoji}</div>
-        <div class="flex-1 flex flex-col">
+      <div class="prod-card" data-pid="${p.id}" style="border-radius:16px;overflow:hidden;">
+        ${buildImageDisplay(p)}
+        <div class="flex-1 flex flex-col p-4">
           <div class="flex items-start justify-between gap-2 mb-1">
             <h3 class="font-semibold text-[#122f18] text-base leading-tight">${esc(p.name)}</h3>
             <span class="badge flex-shrink-0">-${p.disc}%</span>
@@ -348,7 +430,8 @@
           <div class="mb-3">
             <label class="block text-xs font-semibold text-[rgba(26,58,46,0.55)] uppercase tracking-wide mb-1">${esc(p.varLabel)}</label>
             ${p.variants.length > 1
-              ? `<select class="var-select" data-pid="${p.id}">
+              ? `<select class="var-select" data-pid="${p.id}"
+                  onchange="${p.varImages ? `onGanciVarChange(${p.id},this.value)` : ''}">
                   ${p.variants.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('')}
                 </select>`
               : `<div class="text-sm font-medium text-[#122f18] px-2 py-1 bg-[#f0fdf4] rounded-lg">${esc(p.variants[0])}</div>`
