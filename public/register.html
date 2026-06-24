@@ -1106,7 +1106,8 @@
           for (let i = 0; i < 6; i++) s += alphabet[Math.floor(Math.random() * alphabet.length)];
           return 'RNS-' + s;
         }
-        const regCode = genCode();
+        // Sinkronkan dengan order_id donasi bila pendaftar adalah donatur terverifikasi.
+        const regCode = (donorVerified && donorOrderId) ? donorOrderId : genCode();
 
         // Bukti pembayaran diunggah lewat popup QRIS setelah pendaftaran tersimpan.
         const proofUrl = null;
