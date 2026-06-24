@@ -1207,6 +1207,16 @@
             alert('Gagal mengunggah bukti: ' + upErr.message);
             return;
           }
+          // Simpan URL bukti ke tabel donations agar panitia bisa verifikasi.
+          try {
+            const { data: pub } = sb.storage.from('receipts').getPublicUrl(path);
+            const proofUrl = pub?.publicUrl || path;
+            const { error: updErr } = await sb
+              .from('donations')
+              .update({ payment_proof_url: proofUrl })
+              .eq('order_id', dnPendingCode);
+            if (updErr) console.warn('Gagal menyimpan URL bukti donasi:', updErr);
+          } catch (e) { console.warn('Update payment_proof_url donasi gagal:', e); }
           dnQrisUpload.disabled = false; dnQrisUpload.innerHTML = orig;
           alert('Terima kasih! Bukti donasi (kode: ' + dnPendingCode + ') sudah terkirim ke panitia.');
           dnPendingCode = null;

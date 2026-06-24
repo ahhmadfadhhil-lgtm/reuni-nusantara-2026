@@ -642,6 +642,7 @@
       // ====== Donor verification state (set by email check) ======
       let donorVerified = false;
       let donorEmail = '';
+      let donorOrderId = ''; // order_id donasi terverifikasi → dipakai jadi registration_code agar sinkron.
 
       const emailInput = document.getElementById('email');
       const emailStatus = document.getElementById('emailCheckStatus');
@@ -685,29 +686,31 @@
 
         // 1) Primary: RPC (server-side check)
         let verified = false;
+        let foundOrderId = '';
         try {
           const { data, error } = await sb.rpc('check_donor_verified', { _email: raw });
           if (!error && data) verified = true;
         } catch (e) { console.warn('RPC check_donor_verified gagal:', e); }
 
-        // 2) Fallback: cek langsung tabel donations (tanpa filter status,
-        //    yang penting email pernah berdonasi dengan amount > 0).
-        if (!verified) {
-          try {
-            const { data: rows, error: selErr } = await sb
-              .from('donations')
-              .select('id, amount, payment_status')
-              .ilike('donor_email', raw)
-              .limit(5);
-            if (!selErr && Array.isArray(rows) && rows.length > 0) {
-              const hasAny = rows.some(r => Number(r.amount) > 0);
-              if (hasAny) verified = true;
-            }
-          } catch (e) { console.warn('Fallback donations check gagal:', e); }
-        }
+        // 2) Fallback + ambil order_id donasi (untuk sinkron dengan registration_code).
+        try {
+          const { data: rows, error: selErr } = await sb
+            .from('donations')
+            .select('id, amount, payment_status, order_id, created_at')
+            .ilike('donor_email', raw)
+            .order('created_at', { ascending: false })
+            .limit(5);
+          if (!selErr && Array.isArray(rows) && rows.length > 0) {
+            const hasAny = rows.some(r => Number(r.amount) > 0);
+            if (hasAny) verified = true;
+            const withOrder = rows.find(r => r.order_id);
+            if (withOrder) foundOrderId = String(withOrder.order_id);
+          }
+        } catch (e) { console.warn('Fallback donations check gagal:', e); }
 
         if (seq !== emailCheckSeq) return; // ignore stale
         emailStatus.classList.add('hidden');
+        donorOrderId = verified ? foundOrderId : '';
         setDonorState(verified, raw);
       }
       emailInput.addEventListener('blur', checkDonorEmail);
@@ -1103,7 +1106,8 @@
           for (let i = 0; i < 6; i++) s += alphabet[Math.floor(Math.random() * alphabet.length)];
           return 'RNS-' + s;
         }
-        const regCode = genCode();
+        // Sinkronkan dengan order_id donasi bila pendaftar adalah donatur terverifikasi.
+        const regCode = (donorVerified && donorOrderId) ? donorOrderId : genCode();
 
         // Bukti pembayaran diunggah lewat popup QRIS setelah pendaftaran tersimpan.
         const proofUrl = null;
