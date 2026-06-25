@@ -779,40 +779,72 @@
         }
 
         // ====== Auto-download E-Ticket sebagai PDF (tanpa pindah halaman) ======
-        function buildTicketHtml(d) {
+        function escapeHtmlLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+        // buildTicketHtml: identik dengan ticket.html
+        // preEventLink: string URL jika sudah verified+pre_event, null jika tidak
+        function buildTicketHtml(d, preEventLink) {
           const ok = String(d.payment_status).toLowerCase() === 'success';
           const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+
+          const preEventBlock = (ok && preEventLink) ? `
+            <div style="margin-top:16px;padding:14px 16px;border-radius:12px;background:#f0fdf4;border:1px solid #86efac;display:flex;align-items:center;gap:12px;">
+              <svg viewBox="0 0 24 24" fill="#16a34a" width="22" height="22" flex-shrink="0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.997 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.824L0 24l6.335-1.498A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.624 0 11.997 0zM12 22c-1.891 0-3.663-.523-5.176-1.432l-.371-.22-3.762.889.936-3.638-.242-.385A9.96 9.96 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
+              <div style="flex:1;">
+                <strong style="display:block;font-size:13px;color:#14532d;margin-bottom:2px;">Kamu terdaftar di Pre Event!</strong>
+                <span style="font-size:12px;color:#166534;">Bergabung ke grup WhatsApp Sambut REUNUSA sekarang</span>
+              </div>
+              <a href="${preEventLink}" target="_blank" rel="noopener"
+                style="padding:8px 14px;border-radius:10px;background:#16a34a;color:#fff;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;">
+                Gabung Grup
+              </a>
+            </div>` : '';
+
+          const pendingBlock = !ok ? `
+            <div style="margin-top:14px;padding:14px 16px;border-radius:12px;background:#fef3c7;border:1px solid #f59e0b;color:#7c2d12;">
+              <strong style="display:block;margin-bottom:4px;">Pendaftaran berhasil!</strong>
+              <span style="font-size:13px;line-height:1.5;">Bukti pembayaran Anda sedang diverifikasi oleh panitia. Silakan simpan link halaman ini dan cek kembali secara berkala.</span>
+            </div>` : '';
+
           return `
           <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
-            <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
-              <div style="font-size:12px;letter-spacing:0.32em;text-transform:uppercase;opacity:.85;">E-Ticket • Reunusa 2026</div>
+            <!-- Header -->
+            <div style="position:relative;width:800px;max-width:none;height:290px;background:radial-gradient(ellipse 70% 60% at 30% 20%,rgba(255,237,158,.55),transparent 60%),radial-gradient(ellipse 60% 60% at 80% 80%,rgba(252,188,202,.45),transparent 60%),linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:22px 26px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
+              <span style="font-size:12px;letter-spacing:0.32em;text-transform:uppercase;opacity:.85;">E-Ticket • Reunusa 2026</span>
               <h1 style="font-family:'Anybody',sans-serif;font-weight:700;font-size:44px;line-height:1;margin:0;">REUNUSA<br/>2026</h1>
-              <span style="align-self:flex-start;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">Reuni Akbar Alumni Husnul Khotimah</span>
+              <span style="align-self:flex-start;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">Reuni Akbar Alumni Husnul Khotimah</span>
             </div>
+            <!-- Lokasi -->
             <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;">
               <h2 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:26px;margin:0 0 14px;">Main Event Reuni Nusantara</h2>
               <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Lokasi</p>
               <p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">GSG Aridha Nursyahbani</p>
             </div>
+            <!-- Grid info -->
             <div style="padding:22px 28px;border-bottom:1px solid #D2DBD4;display:grid;grid-template-columns:1fr 1fr;gap:22px 28px;">
               <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Nama</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${escapeHtmlLocal(d.full_name || '—')}</p></div>
               <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Kode Tiket</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">${escapeHtmlLocal(d.registration_code || '—')}</p></div>
               <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Tanggal Event</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">25-26 Juli 2026</p></div>
               <div><p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6b7a6f;font-weight:600;margin:0 0 6px;">Waktu</p><p style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0;">08:00 - 21:00 WIB</p></div>
             </div>
+            <!-- QR + Info -->
             <div style="padding:22px 28px;display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
               <div>
                 <h3 style="font-family:'Anybody',sans-serif;font-weight:600;font-size:20px;margin:0 0 12px;">Informasi Tiket</h3>
-                <p style="margin:0;font-size:14px;line-height:1.55;">Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event.</p>
-                <div style="margin-top:10px;display:inline-block;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;${ok?'background:#dcfce7;color:#166534;':'background:#fef9c3;color:#854d0e;'}">${ok?'● Terverifikasi':'● Menunggu Pembayaran'}</div>
+                <p style="margin:0;font-size:14px;line-height:1.55;">Tunjukkan e-Tiket / QR Code yang telah diterima kepada panitia di lokasi event. Setelah terverifikasi, pemilik tiket dapat memasuki Event. Pengunjung WAJIB mematuhi aturan yang berlaku selama acara berlangsung.</p>
+                <div style="margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;${ok ? 'background:#dcfce7;color:#166534;' : 'background:#fef9c3;color:#854d0e;'}">${ok ? '● Terverifikasi' : '● Menunggu Pembayaran'}</div>
+                ${preEventBlock}
+                ${pendingBlock}
               </div>
-              <div style="background:#fff;border:1px solid #D2DBD4;border-radius:16px;padding:14px;text-align:center;">
-                ${ok?`<img src="${qrSrc}" alt="QR ${escapeHtmlLocal(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;display:block;margin-top:8px;">Kode: ${escapeHtmlLocal(d.registration_code)}</small>`:'<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'}
+              <div style="background:#fff;border:1px solid #D2DBD4;border-radius:16px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+                ${ok
+                  ? `<img src="${qrSrc}" alt="QR ${escapeHtmlLocal(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;text-align:center;">Kode: ${escapeHtmlLocal(d.registration_code)}</small>`
+                  : '<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'
+                }
               </div>
             </div>
           </div>`;
         }
-        function escapeHtmlLocal(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
         document.getElementById('ctDownload').addEventListener('click', async () => {
           const btn = document.getElementById('ctDownload');
@@ -822,7 +854,11 @@
           const orig = btn.innerHTML;
           btn.disabled = true; btn.innerHTML = 'Menyiapkan PDF...';
           try {
-            const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
+            // Fetch data tiket + pre-event link secara paralel
+            const [{ data, error }, { data: preLink }] = await Promise.all([
+              sb.rpc('get_registration_by_code', { _registration_code: code }),
+              sb.rpc('get_pre_event_link', { _code: code }),
+            ]);
             if (error) throw error;
             const row = Array.isArray(data) ? data[0] : data;
             if (!row) throw new Error('Data tiket tidak ditemukan.');
@@ -830,10 +866,11 @@
             // Render fixed-size capture root agar html2canvas tidak crop/zoom.
             const wrap = document.createElement('div');
             wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
-            wrap.innerHTML = buildTicketHtml(row);
+            // Kirim preLink ke buildTicketHtml agar pre-event box muncul di PDF
+            wrap.innerHTML = buildTicketHtml(row, preLink || null);
             document.body.appendChild(wrap);
             await waitForTicketAssets(wrap);
-            await new Promise(r => setTimeout(r, 150));
+            await new Promise(r => setTimeout(r, 200));
             const pdfWidth = 848;
             const pdfHeight = Math.ceil(wrap.scrollHeight);
             await window.html2pdf().set({

@@ -49,10 +49,15 @@ AS $$
 DECLARE
   has_access boolean;
 BEGIN
+  -- Link HANYA diberikan jika:
+  -- 1. Kode tiket valid
+  -- 2. Pendaftar memilih ikut pre_event = true
+  -- 3. Panitia sudah verifikasi: payment_status = 'success'
   SELECT EXISTS (
     SELECT 1 FROM public.registrations
     WHERE registration_code = _code
       AND pre_event = true
+      AND LOWER(payment_status) = 'success'
   ) INTO has_access;
 
   IF NOT has_access THEN
