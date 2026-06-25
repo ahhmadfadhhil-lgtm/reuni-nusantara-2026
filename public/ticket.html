@@ -233,14 +233,8 @@
         return '<span class="status status--pending">● Menunggu Pembayaran</span>';
       }
 
-      // ---- Secure link reveal (XOR-obfuscated, never stored as plaintext) ----
-      // Link hanya di-assemble di memory saat runtime, setelah server confirm verified + pre_event=true.
-      // Tidak ada plain-text URL di source HTML maupun di network response dari Supabase.
-      const _lp = [111,119,125,114,118,49,43,39,98,110,102,119,39,117,109,106,112,123,96,118,119,45,106,109,104,36,79,94,113,67,51,82,122,58,102,105,103,76,56,67,107,70,77,101,111,120,49,127,62,117,58,112,97,36,117,54,109,46,104,106,117,62,57,36,100,102,114,53,49];
-      const _k  = [7,3,9,2,5,11,4,8,1,6];
-      function _reveal() {
-        return _lp.map((b,i) => String.fromCharCode(b ^ _k[i % _k.length])).join('');
-      }
+      // Link pre-event diambil via RPC server-side (get_pre_event_link)
+      // Link tidak pernah disimpan di frontend
 
 
       // ---- Load Merchandise Orders ----
@@ -307,23 +301,28 @@
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
           qr.alt = `QR ${d.registration_code}`;
           document.getElementById('fQRNote').textContent = `Kode: ${d.registration_code}`;
-          // Tampilkan link grup pre event HANYA jika pre_event === true dan sudah verified
+          // Minta link pre-event dari Supabase RPC (link tidak pernah ada di frontend)
+          // RPC hanya return link jika kode valid & pre_event=true di database
           const preBox = document.getElementById('preEventBox');
-          if (d.pre_event === true) {
-            const href = _reveal();
-            preBox.style.display = '';
-            preBox.innerHTML = `<div class="preevent-box">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.997 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.824L0 24l6.335-1.498A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.624 0 11.997 0zM12 22c-1.891 0-3.663-.523-5.176-1.432l-.371-.22-3.762.889.936-3.638-.242-.385A9.96 9.96 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
-              <div class="preevent-box__text">
-                <strong>Kamu terdaftar di Pre Event!</strong>
-                <span>Bergabung ke grup WhatsApp Sambut REUNUSA sekarang</span>
-              </div>
-              <a class="preevent-box__btn" href="${href}" target="_blank" rel="noopener">Gabung Grup</a>
-            </div>`;
-          } else {
-            preBox.style.display = 'none';
-            preBox.innerHTML = '';
-          }
+          preBox.style.display = 'none';
+          preBox.innerHTML = '';
+          _preEventReady = (async () => {
+            const { data: preLink, error: preErr } = await sb.rpc('get_pre_event_link', {
+              _code: d.registration_code
+            });
+            if (!preErr && preLink) {
+              preBox.style.display = '';
+              preBox.innerHTML = `<div class="preevent-box">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.997 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.824L0 24l6.335-1.498A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.624 0 11.997 0zM12 22c-1.891 0-3.663-.523-5.176-1.432l-.371-.22-3.762.889.936-3.638-.242-.385A9.96 9.96 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
+                <div class="preevent-box__text">
+                  <strong>Kamu terdaftar di Pre Event!</strong>
+                  <span>Bergabung ke grup WhatsApp Sambut REUNUSA sekarang</span>
+                </div>
+                <a class="preevent-box__btn" id="waPreLink" href="${preLink}" target="_blank" rel="noopener">Gabung Grup</a>
+              </div>`;
+            }
+          })();
+          // PDF akan await _preEventReady sebelum clone DOM
           // Load merchandise orders
           loadMerchandise(d.registration_code);
         } else {
@@ -352,19 +351,30 @@
       })();
 
       // ---- Download as PDF (html2pdf.js) ----
+      // Simpan promise RPC pre-event agar PDF bisa tunggu hasilnya
+      let _preEventReady = Promise.resolve();
+
       document.getElementById('btnPdf').addEventListener('click', async () => {
         const el = document.getElementById('ticketCard');
         const code = (new URLSearchParams(location.search).get('code') || 'tiket').trim();
         const btn = document.getElementById('btnPdf');
         const orig = btn.textContent;
         btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
+
+        // Tunggu blok pre-event selesai diisi (RPC async)
+        await _preEventReady;
+        // Beri waktu render DOM
+        await new Promise(r => setTimeout(r, 500));
+
         el.style.width = '800px';
         el.style.maxWidth = 'none';
         const wrap = document.createElement('div');
         wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
+        // Clone SETELAH pre-event box terisi
         wrap.appendChild(el.cloneNode(true));
+        // Pastikan link di clone tetap valid (cloneNode menjaga href)
         document.body.appendChild(wrap);
-        await new Promise(r => setTimeout(r, 400));
+        await new Promise(r => setTimeout(r, 300));
         window.html2pdf().set({
           margin: 8,
           filename: `e-ticket-reunusa-${code}.pdf`,
