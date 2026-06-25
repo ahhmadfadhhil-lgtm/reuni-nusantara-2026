@@ -1219,12 +1219,39 @@
         if (donorVerified) {
           showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
           await downloadETicket(regCode);
+          await maybeShowPreEventLink(regCode);
           return;
         }
 
         // Buka popup QRIS + upload bukti
         openQrisModal(regCode, kodeRefVal);
       });
+
+      // ====== Pre-Event WhatsApp Link (link disimpan di server via RPC) ======
+      const preEventModal = document.getElementById('preEventModal');
+      const preEventJoinBtn = document.getElementById('preEventJoinBtn');
+      document.getElementById('preEventCloseBtn').addEventListener('click', () => {
+        preEventModal.style.display = 'none';
+        document.body.style.overflow = '';
+      });
+      preEventModal.addEventListener('click', (e) => {
+        if (e.target === preEventModal) {
+          preEventModal.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+      });
+      async function maybeShowPreEventLink(code) {
+        try {
+          const { data, error } = await sb.rpc('get_pre_event_link', { _code: code });
+          if (error || !data) return;
+          preEventJoinBtn.href = data;
+          preEventModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        } catch (e) {
+          console.warn('get_pre_event_link gagal:', e);
+        }
+      }
+
 
       // ====== QRIS Modal Logic ======
       const qrisModal = document.getElementById('qrisModal');
