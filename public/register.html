@@ -1383,7 +1383,8 @@
 
           const wrap = document.createElement('div');
           wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
-          wrap.innerHTML = buildTicketHtml(row);
+          const preEventLink = await fetchPreEventLink(code);
+          wrap.innerHTML = buildTicketHtml(row, preEventLink);
           document.body.appendChild(wrap);
           await waitForAssets(wrap);
           await new Promise(r => setTimeout(r, 150));
