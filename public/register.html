@@ -1317,9 +1317,16 @@
 
       // ====== Direct E-Ticket Download (tanpa pindah halaman ke ticket.html) ======
       function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-      function buildTicketHtml(d) {
+      function buildTicketHtml(d, preEventLink) {
         const ok = String(d.payment_status || '').toLowerCase() === 'success';
         const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+        const preBlock = preEventLink ? `
+          <div style="padding:18px 28px;border-top:1px solid #D2DBD4;background:#F1F7EE;">
+            <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2d7556;font-weight:700;margin:0 0 6px;">Grup WhatsApp Pre-Event</p>
+            <p style="margin:0 0 8px;font-size:13px;line-height:1.55;color:#1E2A20;">Anda terdaftar Pre-Event Sambut Reunusa. Gabung grup WhatsApp untuk info lebih lanjut:</p>
+            <a href="${esc(preEventLink)}" style="word-break:break-all;color:#122F18;font-weight:700;text-decoration:underline;font-size:13px;">${esc(preEventLink)}</a>
+            <p style="margin:8px 0 0;font-size:11px;color:#6b7a6f;">Link ini bersifat pribadi untuk peserta pre-event. Mohon tidak disebarluaskan.</p>
+          </div>` : '';
         return `
         <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
           <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
@@ -1348,6 +1355,7 @@
               ${ok?`<img src="${qrSrc}" alt="QR ${esc(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;display:block;margin-top:8px;">Kode: ${esc(d.registration_code)}</small>`:'<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'}
             </div>
           </div>
+          ${preBlock}
         </div>`;
       }
       async function waitForAssets(root) {
