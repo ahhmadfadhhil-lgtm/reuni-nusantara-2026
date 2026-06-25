@@ -633,6 +633,42 @@
       </div>
     </div>
 
+    <!-- ============ POPUP: Link Grup WhatsApp Pre-Event ============ -->
+    <div
+      id="preEventModal"
+      style="display:none;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:16px;overflow-y:auto;"
+    >
+      <div
+        style="background:#faf6f0;border-radius:20px;max-width:480px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,0.35);position:relative;font-family:'Alexandria',sans-serif;text-align:center;"
+      >
+        <button
+          type="button"
+          id="preEventCloseBtn"
+          aria-label="Tutup"
+          style="position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:#122f18;font-size:24px;line-height:1;"
+        >
+          ×
+        </button>
+        <h3 class="section-title" style="margin-bottom:6px;">Gabung Grup Pre-Event 🎉</h3>
+        <p class="field-hint" style="margin-bottom:18px;">
+          Anda terdaftar untuk Pre-Event Sambut Reunusa. Klik tombol di bawah untuk bergabung ke grup WhatsApp pre-event.
+        </p>
+        <a
+          id="preEventJoinBtn"
+          href="#"
+          target="_blank"
+          rel="noopener"
+          class="btn-primary"
+          style="display:inline-block;width:100%;text-decoration:none;line-height:48px;"
+        >
+          Gabung Grup WhatsApp
+        </a>
+        <p style="margin-top:12px;font-size:13px;color:rgba(26,58,46,0.7);">
+          Link ini hanya untuk peserta pre-event. Jangan dibagikan ke publik.
+        </p>
+      </div>
+    </div>
+
     <script>
       // ====== Supabase ======
       const SUPABASE_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
@@ -1183,12 +1219,39 @@
         if (donorVerified) {
           showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
           await downloadETicket(regCode);
+          await maybeShowPreEventLink(regCode);
           return;
         }
 
         // Buka popup QRIS + upload bukti
         openQrisModal(regCode, kodeRefVal);
       });
+
+      // ====== Pre-Event WhatsApp Link (link disimpan di server via RPC) ======
+      const preEventModal = document.getElementById('preEventModal');
+      const preEventJoinBtn = document.getElementById('preEventJoinBtn');
+      document.getElementById('preEventCloseBtn').addEventListener('click', () => {
+        preEventModal.style.display = 'none';
+        document.body.style.overflow = '';
+      });
+      preEventModal.addEventListener('click', (e) => {
+        if (e.target === preEventModal) {
+          preEventModal.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+      });
+      async function maybeShowPreEventLink(code) {
+        try {
+          const { data, error } = await sb.rpc('get_pre_event_link', { _code: code });
+          if (error || !data) return;
+          preEventJoinBtn.href = data;
+          preEventModal.style.display = 'flex';
+          document.body.style.overflow = 'hidden';
+        } catch (e) {
+          console.warn('get_pre_event_link gagal:', e);
+        }
+      }
+
 
       // ====== QRIS Modal Logic ======
       const qrisModal = document.getElementById('qrisModal');
@@ -1296,6 +1359,7 @@
         try { localStorage.removeItem('reunusa_pending_payment'); } catch (_) {}
         closeQrisModal();
         await downloadETicket(codeForDl);
+        await maybeShowPreEventLink(codeForDl);
       });
 
       // ====== Direct E-Ticket Download (tanpa pindah halaman ke ticket.html) ======
