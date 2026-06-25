@@ -633,42 +633,8 @@
       </div>
     </div>
 
-    <!-- ============ POPUP: Link Grup WhatsApp Pre-Event ============ -->
-    <div
-      id="preEventModal"
-      style="display:none;position:fixed;inset:0;z-index:210;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:16px;overflow-y:auto;"
-    >
-      <div
-        style="background:#faf6f0;border-radius:20px;max-width:480px;width:100%;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,0.35);position:relative;font-family:'Alexandria',sans-serif;text-align:center;"
-      >
-        <button
-          type="button"
-          id="preEventCloseBtn"
-          aria-label="Tutup"
-          style="position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:#122f18;font-size:24px;line-height:1;"
-        >
-          ×
-        </button>
-        <h3 class="section-title" style="margin-bottom:6px;">Gabung Grup Pre-Event 🎉</h3>
-        <p class="field-hint" style="margin-bottom:18px;">
-          Anda terdaftar untuk Pre-Event Sambut Reunusa. Klik tombol di bawah untuk bergabung ke grup WhatsApp
-          pre-event.
-        </p>
-        <a
-          id="preEventJoinBtn"
-          href="#"
-          target="_blank"
-          rel="noopener"
-          class="btn-primary"
-          style="display:inline-block;width:100%;text-decoration:none;line-height:48px;"
-        >
-          Gabung Grup WhatsApp
-        </a>
-        <p style="margin-top:12px;font-size:13px;color:rgba(26,58,46,0.7);">
-          Link ini hanya untuk peserta pre-event. Jangan dibagikan ke publik.
-        </p>
-      </div>
-    </div>
+    <!-- Link grup WhatsApp pre-event disisipkan langsung ke PDF e-ticket bagi peserta pre-event. -->
+
 
     <script>
       // ====== Supabase ======
@@ -1220,7 +1186,6 @@
         if (donorVerified) {
           showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
           await downloadETicket(regCode);
-          await maybeShowPreEventLink(regCode);
           return;
         }
 
@@ -1228,30 +1193,18 @@
         openQrisModal(regCode, kodeRefVal);
       });
 
-      // ====== Pre-Event WhatsApp Link (link disimpan di server via RPC) ======
-      const preEventModal = document.getElementById('preEventModal');
-      const preEventJoinBtn = document.getElementById('preEventJoinBtn');
-      document.getElementById('preEventCloseBtn').addEventListener('click', () => {
-        preEventModal.style.display = 'none';
-        document.body.style.overflow = '';
-      });
-      preEventModal.addEventListener('click', (e) => {
-        if (e.target === preEventModal) {
-          preEventModal.style.display = 'none';
-          document.body.style.overflow = '';
-        }
-      });
-      async function maybeShowPreEventLink(code) {
+      // ====== Pre-Event WhatsApp Link (link disimpan di server via RPC, disisipkan ke PDF ticket) ======
+      async function fetchPreEventLink(code) {
         try {
           const { data, error } = await sb.rpc('get_pre_event_link', { _code: code });
-          if (error || !data) return;
-          preEventJoinBtn.href = data;
-          preEventModal.style.display = 'flex';
-          document.body.style.overflow = 'hidden';
+          if (error || !data) return null;
+          return data;
         } catch (e) {
           console.warn('get_pre_event_link gagal:', e);
+          return null;
         }
       }
+
 
 
       // ====== QRIS Modal Logic ======
@@ -1360,14 +1313,20 @@
         try { localStorage.removeItem('reunusa_pending_payment'); } catch (_) {}
         closeQrisModal();
         await downloadETicket(codeForDl);
-        await maybeShowPreEventLink(codeForDl);
       });
 
       // ====== Direct E-Ticket Download (tanpa pindah halaman ke ticket.html) ======
       function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-      function buildTicketHtml(d) {
+      function buildTicketHtml(d, preEventLink) {
         const ok = String(d.payment_status || '').toLowerCase() === 'success';
         const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
+        const preBlock = preEventLink ? `
+          <div style="padding:18px 28px;border-top:1px solid #D2DBD4;background:#F1F7EE;">
+            <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#2d7556;font-weight:700;margin:0 0 6px;">Grup WhatsApp Pre-Event</p>
+            <p style="margin:0 0 8px;font-size:13px;line-height:1.55;color:#1E2A20;">Anda terdaftar Pre-Event Sambut Reunusa. Gabung grup WhatsApp untuk info lebih lanjut:</p>
+            <a href="${esc(preEventLink)}" style="word-break:break-all;color:#122F18;font-weight:700;text-decoration:underline;font-size:13px;">${esc(preEventLink)}</a>
+            <p style="margin:8px 0 0;font-size:11px;color:#6b7a6f;">Link ini bersifat pribadi untuk peserta pre-event. Mohon tidak disebarluaskan.</p>
+          </div>` : '';
         return `
         <div id="rnsTicketCard" style="width:800px;max-width:none;background:#fff;border-radius:24px;overflow:hidden;font-family:'Alexandria',sans-serif;color:#1E2A20;box-shadow:0 24px 60px rgba(18,47,24,0.12);">
           <div style="position:relative;width:800px;max-width:none;height:280px;background:linear-gradient(135deg,#122F18 0%,#2d7556 100%);padding:24px 28px;color:#FAF6F0;display:flex;flex-direction:column;justify-content:space-between;">
@@ -1396,6 +1355,7 @@
               ${ok?`<img src="${qrSrc}" alt="QR ${esc(d.registration_code)}" crossorigin="anonymous" style="width:100%;height:auto;border-radius:8px;display:block;"/><small style="font-size:11px;color:#6b7a6f;display:block;margin-top:8px;">Kode: ${esc(d.registration_code)}</small>`:'<small style="font-size:12px;color:#6b7a6f;">QR akan muncul setelah pembayaran diverifikasi.</small>'}
             </div>
           </div>
+          ${preBlock}
         </div>`;
       }
       async function waitForAssets(root) {
@@ -1423,7 +1383,8 @@
 
           const wrap = document.createElement('div');
           wrap.style.cssText = 'position:fixed;top:0;left:0;width:848px;max-width:none;background:#FAF6F0;padding:24px;box-sizing:border-box;z-index:-1;pointer-events:none;overflow:visible;';
-          wrap.innerHTML = buildTicketHtml(row);
+          const preEventLink = await fetchPreEventLink(code);
+          wrap.innerHTML = buildTicketHtml(row, preEventLink);
           document.body.appendChild(wrap);
           await waitForAssets(wrap);
           await new Promise(r => setTimeout(r, 150));
