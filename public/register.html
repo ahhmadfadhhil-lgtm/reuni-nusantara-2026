@@ -1220,7 +1220,6 @@
         if (donorVerified) {
           showToast('Pendaftaran berhasil! Menyiapkan unduhan e-ticket...');
           await downloadETicket(regCode);
-          await maybeShowPreEventLink(regCode);
           return;
         }
 
