@@ -1313,7 +1313,6 @@
         try { localStorage.removeItem('reunusa_pending_payment'); } catch (_) {}
         closeQrisModal();
         await downloadETicket(codeForDl);
-        await maybeShowPreEventLink(codeForDl);
       });
 
       // ====== Direct E-Ticket Download (tanpa pindah halaman ke ticket.html) ======
