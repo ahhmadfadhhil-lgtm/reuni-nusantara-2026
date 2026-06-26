@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Validasi Tiket — Reunusa 2026</title>
     <link rel="icon" type="image/png" href="/assets/pavicon.png" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
@@ -32,7 +31,6 @@
       .kv div:nth-child(odd) { color:#6b7a6f; }
       .kv div:nth-child(even) { font-weight:600; }
     </style>
-    <script src="/env.js"></script>
   </head>
   <body>
     <div class="wrap">
@@ -58,16 +56,14 @@
     </div>
 
     <script>
-      const SUPABASE_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
-      const SUPABASE_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ── Semua akses database lewat /api/pendaftar & /api/merchandise ──
+      // Tidak ada Supabase URL/key di frontend.
 
       const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
       const resultBox = document.getElementById('resultBox');
 
       function extractCode(raw) {
         const s = String(raw || '').trim();
-        // Jika URL (ticket.html?code=RNS-XXXX) ambil param code
         try {
           const u = new URL(s);
           const c = u.searchParams.get('code');
@@ -80,35 +76,35 @@
         const code = extractCode(rawCode);
         if (!code) return;
         resultBox.innerHTML = '<div class="card result warn"><h2>Memeriksa...</h2><p>Kode: ' + esc(code) + '</p></div>';
-        const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
-        if (error) {
-          resultBox.innerHTML = '<div class="card result bad"><h2>● Error</h2><p>' + esc(error.message) + '</p></div>';
-          return;
-        }
-        const row = Array.isArray(data) ? data[0] : data;
-        if (!row) {
-          resultBox.innerHTML = '<div class="card result bad"><h2>● INVALID</h2><p>Tiket tidak ditemukan</p><p style="margin-top:6px;font-size:12px">Kode: ' + esc(code) + '</p></div>';
-          return;
-        }
-        const status = String(row.payment_status || '').toLowerCase();
-        const ok = status === 'success';
-        const pending = status === 'pending';
-        const cls = ok ? 'ok' : (pending ? 'warn' : 'bad');
-        const label = ok ? '● VALID' : (pending ? '● BELUM BAYAR' : '● INVALID');
-        resultBox.innerHTML = `
-          <div class="card result ${cls}">
-            <h2>${label}</h2>
-            <p>${ok ? 'Tiket terverifikasi — peserta boleh masuk.' : (pending ? 'Pembayaran belum berstatus SUCCESS.' : 'Pembayaran gagal/dibatalkan.')}</p>
-            <div class="kv">
-              <div>Nama</div><div>${esc(row.full_name || '—')}</div>
-              <div>Kode Tiket</div><div>${esc(row.registration_code || '—')}</div>
-              <div>Email</div><div>${esc(row.email || '—')}</div>
-              <div>Status</div><div>${esc(row.payment_status || '—')}</div>
+        document.getElementById('mercResult').innerHTML = '';
+        try {
+          const res = await fetch(`/api/pendaftar?action=get_ticket&code=${encodeURIComponent(code)}`);
+          const row = await res.json();
+          if (!row) {
+            resultBox.innerHTML = '<div class="card result bad"><h2>● INVALID</h2><p>Tiket tidak ditemukan</p><p style="margin-top:6px;font-size:12px">Kode: ' + esc(code) + '</p></div>';
+            return;
+          }
+          const status = String(row.payment_status || '').toLowerCase();
+          const ok = status === 'success';
+          const pending = status === 'pending';
+          const cls = ok ? 'ok' : (pending ? 'warn' : 'bad');
+          const label = ok ? '● VALID' : (pending ? '● BELUM BAYAR' : '● INVALID');
+          resultBox.innerHTML = `
+            <div class="card result ${cls}">
+              <h2>${label}</h2>
+              <p>${ok ? 'Tiket terverifikasi — peserta boleh masuk.' : (pending ? 'Pembayaran belum berstatus SUCCESS.' : 'Pembayaran gagal/dibatalkan.')}</p>
+              <div class="kv">
+                <div>Nama</div><div>${esc(row.full_name || '—')}</div>
+                <div>Kode Tiket</div><div>${esc(row.registration_code || '—')}</div>
+                <div>Email</div><div>${esc(row.email || '—')}</div>
+                <div>Status</div><div>${esc(row.payment_status || '—')}</div>
+              </div>
             </div>
-          </div>
-        `;
-        // Load merchandise orders untuk kode ini
-        loadMerchandise(row.registration_code);
+          `;
+          loadMerchandise(row.registration_code);
+        } catch(e) {
+          resultBox.innerHTML = '<div class="card result bad"><h2>● Error</h2><p>' + esc(e.message) + '</p></div>';
+        }
       }
 
       // Manual input
@@ -150,39 +146,36 @@
         document.getElementById('btnStop').disabled = true;
       });
 
-      // ---- Merchandise Orders (untuk panitia) ----
+      // ── Merchandise via /api/merchandise ──
       async function loadMerchandise(regCode) {
         document.getElementById('mercResult').innerHTML = '';
-        const { data, error } = await sb
-          .from('merchandise_orders')
-          .select('items, total_amount, payment_status, created_at')
-          .eq('registration_code', regCode)
-          .order('created_at', { ascending: false });
-        if (error || !data || data.length === 0) {
-          document.getElementById('mercResult').innerHTML = '';
-          return;
-        }
-        const rows = data.map(order => {
-          const items = Array.isArray(order.items) ? order.items : [];
-          const st = String(order.payment_status || '').toLowerCase();
-          const stLabel = st === 'approved' || st === 'success' ? '✓ Lunas' : '⏳ Pending';
-          const stColor = (st === 'approved' || st === 'success') ? '#166534' : '#854d0e';
-          return `<div style="margin-bottom:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #D2DBD4;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;font-weight:700;color:${stColor}">${stLabel}</div>
-            ${items.map(it => `<div style="display:flex;justify-content:space-between;font-size:13px;color:#1E2A20;padding:3px 0;">
-              <span><b>${esc(it.name)}</b> — ${esc(it.variant)} ×${it.qty}</span>
-              <span>Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
-            </div>`).join('')}
-            <div style="border-top:1px dashed #D2DBD4;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:13px;">
-              <span>Total</span><span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
-            </div>
-          </div>`;
-        }).join('');
-        document.getElementById('mercResult').innerHTML = `
-          <div class="card" style="margin-top:0;">
-            <h3 style="font-size:15px;font-weight:700;color:#122f18;margin:0 0 10px;">🛍️ Merchandise Dipesan</h3>
-            ${rows}
-          </div>`;
+        try {
+          const res = await fetch(`/api/merchandise?action=get_orders&code=${encodeURIComponent(regCode)}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) return;
+          const rows = data.map(order => {
+            const items = Array.isArray(order.items) ? order.items : [];
+            const st = String(order.payment_status || '').toLowerCase();
+            const stLabel = st === 'approved' || st === 'success' ? '✓ Lunas' : '⏳ Pending';
+            const stColor = (st === 'approved' || st === 'success') ? '#166534' : '#854d0e';
+            return `<div style="margin-bottom:10px;padding:10px;background:#fff;border-radius:10px;border:1px solid #D2DBD4;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12px;font-weight:700;color:${stColor}">${stLabel}</div>
+              ${items.map(it => `<div style="display:flex;justify-content:space-between;font-size:13px;color:#1E2A20;padding:3px 0;">
+                <span><b>${esc(it.name)}</b> — ${esc(it.variant)} ×${it.qty}</span>
+                <span>Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
+              </div>`).join('')}
+              <div style="border-top:1px dashed #D2DBD4;margin-top:6px;padding-top:6px;display:flex;justify-content:space-between;font-weight:700;font-size:13px;">
+                <span>Total</span><span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
+              </div>
+            </div>`;
+          }).join('');
+          document.getElementById('mercResult').innerHTML = `
+            <div class="card" style="margin-top:0;">
+              <h3 style="font-size:15px;font-weight:700;color:#122f18;margin:0 0 10px;">🛍️ Merchandise Dipesan</h3>
+              ${rows}
+            </div>`;
+        } catch(e) { console.error('loadMerchandise:', e); }
       }
     </script>
   </body>

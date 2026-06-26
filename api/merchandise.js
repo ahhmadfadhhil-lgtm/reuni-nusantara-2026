@@ -32,6 +32,19 @@ export default async function handler(req, res) {
     const sb = getSupabase();
 
     if (req.method === 'GET') {
+      // GET /api/merchandise?action=get_orders&code=xxx
+      if (action === 'get_orders') {
+        const code = (req.query.code || '').trim().toUpperCase();
+        if (!code) return err(res, 'code required', 400);
+        const { data, error } = await sb
+          .from('merchandise_orders')
+          .select('items, total_amount, payment_status, created_at')
+          .eq('registration_code', code)
+          .order('created_at', { ascending: false });
+        if (error) return err(res, error.message);
+        return json(res, data || []);
+      }
+
       // GET /api/merchandise?action=validate_ticket&code=xxx
       if (action === 'validate_ticket') {
         const code = (req.query.code || '').trim().toUpperCase();

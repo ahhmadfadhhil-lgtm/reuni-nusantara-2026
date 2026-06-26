@@ -10,7 +10,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>E-Ticket Reunusa 2026</title>
     <link rel="icon" type="image/png" href="/assets/pavicon.png" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.2/dist/html2pdf.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -139,7 +138,6 @@
         .ticket { box-shadow: none; border: 1px solid var(--ink); }
       }
     </style>
-    <script src="/env.js"></script>
   </head>
   <body>
     <main class="ticket" id="ticketCard">
@@ -223,9 +221,8 @@
     </div>
 
     <script>
-      const SUPABASE_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
-      const SUPABASE_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
-      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ── Semua akses database lewat /api/pendaftar & /api/merchandise ──
+      // Tidak ada Supabase URL/key di frontend. Aman dari inspect element/Network tab.
 
       const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
@@ -236,47 +233,43 @@
         return '<span class="status status--pending">● Menunggu Pembayaran</span>';
       }
 
-      // Link pre-event diambil via RPC server-side (get_pre_event_link)
-      // Link tidak pernah disimpan di frontend
-
-
-      // ---- Load Merchandise Orders ----
+      // ── Load merchandise orders via /api/merchandise ──
       async function loadMerchandise(regCode) {
-        const { data, error } = await sb
-          .from('merchandise_orders')
-          .select('items, total_amount, payment_status, created_at')
-          .eq('registration_code', regCode)
-          .order('created_at', { ascending: false });
-        if (error || !data || data.length === 0) return;
-        const sec = document.getElementById('mercSection');
-        const list = document.getElementById('mercList');
-        sec.style.display = '';
-        list.innerHTML = data.map(order => {
-          const items = Array.isArray(order.items) ? order.items : [];
-          const st = String(order.payment_status || '').toLowerCase();
-          const stLabel = st === 'approved' || st === 'success'
-            ? '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">✓ Lunas</span>'
-            : '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">⏳ Pending</span>';
-          const itemRows = items.map(it =>
-            `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f1;font-size:14px;">
-              <div>
-                <span style="font-weight:600;color:#1E2A20;">${esc(it.name)}</span>
-                <span style="color:#6b7a6f;margin-left:6px;font-size:12px;">${esc(it.variant)} × ${it.qty}</span>
+        try {
+          const res = await fetch(`/api/merchandise?action=get_orders&code=${encodeURIComponent(regCode)}`);
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) return;
+          const sec = document.getElementById('mercSection');
+          const list = document.getElementById('mercList');
+          sec.style.display = '';
+          list.innerHTML = data.map(order => {
+            const items = Array.isArray(order.items) ? order.items : [];
+            const st = String(order.payment_status || '').toLowerCase();
+            const stLabel = st === 'approved' || st === 'success'
+              ? '<span style="background:#dcfce7;color:#166534;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">✓ Lunas</span>'
+              : '<span style="background:#fef9c3;color:#854d0e;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:700;">⏳ Pending</span>';
+            const itemRows = items.map(it =>
+              `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f4f1;font-size:14px;">
+                <div>
+                  <span style="font-weight:600;color:#1E2A20;">${esc(it.name)}</span>
+                  <span style="color:#6b7a6f;margin-left:6px;font-size:12px;">${esc(it.variant)} × ${it.qty}</span>
+                </div>
+                <span style="font-weight:600;color:#122F18;">Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
+              </div>`
+            ).join('');
+            return `<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:2px dashed #D2DBD4;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:12px;color:#6b7a6f;">Status Pembayaran:</span>${stLabel}
               </div>
-              <span style="font-weight:600;color:#122F18;">Rp ${Number(it.price * it.qty).toLocaleString('id-ID')}</span>
-            </div>`
-          ).join('');
-          return `<div style="margin-bottom:16px;padding-bottom:16px;border-bottom:2px dashed #D2DBD4;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <span style="font-size:12px;color:#6b7a6f;">Status Pembayaran:</span>${stLabel}
-            </div>
-            ${itemRows}
-            <div style="display:flex;justify-content:space-between;padding-top:8px;font-weight:700;color:#122F18;font-size:15px;">
-              <span>Total</span>
-              <span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
-            </div>
-          </div>`;
-        }).join('');
+              ${itemRows}
+              <div style="display:flex;justify-content:space-between;padding-top:8px;font-weight:700;color:#122F18;font-size:15px;">
+                <span>Total</span>
+                <span>Rp ${Number(order.total_amount).toLocaleString('id-ID')}</span>
+              </div>
+            </div>`;
+          }).join('');
+        } catch(e) { console.error('loadMerchandise:', e); }
       }
 
       function renderTicket(d) {
@@ -304,32 +297,31 @@
           qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=360x360&margin=8&data=${encodeURIComponent(d.registration_code || '')}`;
           qr.alt = `QR ${d.registration_code}`;
           document.getElementById('fQRNote').textContent = `Kode: ${d.registration_code}`;
-          // Minta link pre-event dari Supabase RPC (link tidak pernah ada di frontend)
-          // RPC hanya return link jika kode valid & pre_event=true di database
+          // Pre-event link: fetch dari /api/pendaftar — link tidak pernah ada di client
           const preBox = document.getElementById('preEventBox');
           preBox.style.display = 'none';
           preBox.innerHTML = '';
           _preEventReady = (async () => {
-            const { data: preLink, error: preErr } = await sb.rpc('get_pre_event_link', {
-              _code: d.registration_code
-            });
-            if (!preErr && preLink) {
-              preBox.style.display = '';
-              const waQrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(preLink)}`;
-              preBox.innerHTML = `<div class="preevent-box">
-                <div class="preevent-box__text">
-                  <strong>Kamu terdaftar di Pre Event Sambut REUNUSA!</strong>
-                  <span>Scan QR Code di bawah untuk bergabung ke grup WhatsApp:</span>
-                </div>
-                <div style="text-align:center;flex:0 0 auto;">
-                  <img class="preevent-box__qr" src="${waQrSrc}" alt="QR Grup WhatsApp Pre Event" crossorigin="anonymous" />
-                  <p class="preevent-box__qrlabel">Grup WhatsApp<br/>Pre Event</p>
-                </div>
-              </div>`;
-            }
+            try {
+              const res = await fetch(`/api/pendaftar?action=get_pre_event_link&code=${encodeURIComponent(d.registration_code)}`);
+              const json = await res.json();
+              const preLink = json?.link || null;
+              if (preLink) {
+                const waQrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent(preLink)}`;
+                preBox.style.display = '';
+                preBox.innerHTML = `<div class="preevent-box">
+                  <div class="preevent-box__text">
+                    <strong>Kamu terdaftar di Pre Event Sambut REUNUSA!</strong>
+                    <span>Scan QR Code di bawah untuk bergabung ke grup WhatsApp:</span>
+                  </div>
+                  <div style="text-align:center;flex:0 0 auto;">
+                    <img class="preevent-box__qr" src="${waQrSrc}" alt="QR Grup WhatsApp Pre Event" crossorigin="anonymous" />
+                    <p class="preevent-box__qrlabel">Grup WhatsApp<br/>Pre Event</p>
+                  </div>
+                </div>`;
+              }
+            } catch(e) { console.error('pre_event_link:', e); }
           })();
-          // PDF akan await _preEventReady sebelum clone DOM
-          // Load merchandise orders
           loadMerchandise(d.registration_code);
         } else {
           qrWrap.style.display = 'none';
@@ -338,47 +330,35 @@
         }
       }
 
-      (async function () {
-        const qs = new URLSearchParams(location.search);
-        const code = (qs.get('code') || '').trim();
-        if (!code) {
-          renderTicket(null);
-          return;
-        }
-        const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
-        if (error) {
-          console.error(error);
-          document.getElementById('fNama').textContent = 'Error';
-          document.getElementById('fKode').textContent = error.message;
-          return;
-        }
-        const row = Array.isArray(data) ? data[0] : data;
-        renderTicket(row);
-      })();
-
-      // ---- Download as PDF (html2pdf.js) ----
-      // Simpan promise RPC pre-event agar PDF bisa tunggu hasilnya
+      // ── Inisialisasi: fetch tiket via /api/pendaftar ──
       let _preEventReady = Promise.resolve();
 
+      (async function () {
+        const code = (new URLSearchParams(location.search).get('code') || '').trim();
+        if (!code) { renderTicket(null); return; }
+        try {
+          const res = await fetch(`/api/pendaftar?action=get_ticket&code=${encodeURIComponent(code)}`);
+          const row = await res.json();
+          renderTicket(row || null);
+        } catch(e) {
+          document.getElementById('fNama').textContent = 'Error memuat tiket';
+          document.getElementById('fKode').textContent = e.message;
+        }
+      })();
+
+      // ── Download PDF ──
       document.getElementById('btnPdf').addEventListener('click', async () => {
         const el = document.getElementById('ticketCard');
         const code = (new URLSearchParams(location.search).get('code') || 'tiket').trim();
         const btn = document.getElementById('btnPdf');
         const orig = btn.textContent;
         btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
-
-        // Tunggu blok pre-event selesai diisi (RPC async)
         await _preEventReady;
-        // Beri waktu render DOM
         await new Promise(r => setTimeout(r, 500));
-
-        el.style.width = '800px';
-        el.style.maxWidth = 'none';
+        el.style.width = '800px'; el.style.maxWidth = 'none';
         const wrap = document.createElement('div');
         wrap.style.cssText = 'position:absolute;top:0;left:-9999px;width:800px;max-width:none;background:#FAF6F0;padding:24px;z-index:-1;';
-        // Clone SETELAH pre-event box terisi
         wrap.appendChild(el.cloneNode(true));
-        // Pastikan link di clone tetap valid (cloneNode menjaga href)
         document.body.appendChild(wrap);
         await new Promise(r => setTimeout(r, 300));
         window.html2pdf().set({
