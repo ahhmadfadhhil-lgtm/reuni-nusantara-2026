@@ -1,13 +1,14 @@
 <!DOCTYPE html>
+<!-- Semua panggilan database via /api/merchandise & /api/pendaftar (server-side proxy).
+     Tidak ada lagi window.__ENV / supabase.createClient() di sini. -->
 <html lang="id">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Merchandise — Reunusa 2026</title>
   <link rel="icon" type="image/png" href="/assets/pavicon.png"/>
-  <script src="/env.js"></script>
+  <!-- TIDAK ada lagi <script src="/env.js"> — kredensial hanya di server -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&family=Anybody:wght@500;600;700&display=swap" rel="stylesheet"/>
@@ -15,26 +16,18 @@
     *{box-sizing:border-box;}
     body{font-family:'Alexandria',sans-serif;background:#faf6f0;color:#1e2a20;}
     .font-display{font-family:'Anybody',sans-serif;}
-
-    /* ── Slideshow ── */
     .slide-wrap{position:relative;overflow:hidden;background:#f4f4f2;aspect-ratio:1/1;cursor:grab;}
     .slide-wrap:active{cursor:grabbing;}
     .slide-track{display:flex;height:100%;transition:transform .32s cubic-bezier(.4,0,.2,1);will-change:transform;}
     .slide-track img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;object-position:center;pointer-events:none;user-select:none;}
     .slide-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:none;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:opacity .15s;}
-    .slide-btn:hover{opacity:.9;}
-    .slide-btn.prev{left:8px;}
-    .slide-btn.next{right:8px;}
+    .slide-btn:hover{opacity:.9;} .slide-btn.prev{left:8px;} .slide-btn.next{right:8px;}
     .slide-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:5;}
     .slide-dot{width:7px;height:7px;border-radius:50%;border:none;cursor:pointer;background:rgba(18,47,24,.25);padding:0;transition:all .2s;}
     .slide-dot.active{background:#122f18;width:18px;border-radius:4px;}
-
-    /* ── Product card ── */
     .prod-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(18,47,24,.08);display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s;}
     .prod-card:hover{box-shadow:0 8px 28px rgba(18,47,24,.14);transform:translateY(-2px);}
     .disc-badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#dcfce7;color:#166534;}
-
-    /* ── Modal overlay ── */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none;align-items:center;justify-content:center;padding:16px;}
     .modal-bg.open{display:flex;}
     .modal-box{background:#faf6f0;border-radius:20px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;position:relative;box-shadow:0 30px 80px rgba(0,0,0,.28);}
@@ -42,8 +35,6 @@
     .modal-close button{background:none;border:0;font-size:24px;line-height:1;cursor:pointer;color:#122f18;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
     .modal-close button:hover{background:rgba(18,47,24,.08);}
     .modal-body{padding:0 24px 28px;}
-
-    /* ── Checkout modal ── */
     .ck-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:none;align-items:center;justify-content:center;padding:16px;}
     .ck-modal-bg.open{display:flex;}
     .ck-box{background:#faf6f0;border-radius:20px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;position:relative;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.28);}
@@ -54,26 +45,17 @@
     .btn-p{background:#122f18;color:#faf6f0;border-radius:10px;padding:13px 20px;font-weight:600;font-size:15px;border:none;cursor:pointer;width:100%;font-family:'Alexandria',sans-serif;transition:opacity .15s;}
     .btn-p:hover{opacity:.9;} .btn-p:disabled{opacity:.5;cursor:not-allowed;}
     .btn-g{background:transparent;color:#122f18;border:1.5px solid #122f18;border-radius:10px;padding:12px 20px;font-weight:600;font-size:15px;cursor:pointer;width:100%;font-family:'Alexandria',sans-serif;}
-
-    /* ── Floating cart ── */
     #floatCart{position:fixed;bottom:24px;right:20px;z-index:500;background:#122f18;color:#faf6f0;border-radius:999px;padding:13px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 28px rgba(18,47,24,.4);cursor:pointer;font-weight:600;font-size:15px;transition:transform .15s;}
     #floatCart:hover{transform:scale(1.04);}
     #cartBadge{background:#fbbf24;color:#1c1917;border-radius:999px;min-width:22px;height:22px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 6px;}
-
-    /* ── Var select ── */
     select.var-sel{border:1px solid rgba(45,117,86,.3);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;background:#faf6f0;color:#122f18;outline:none;font-family:'Alexandria',sans-serif;cursor:pointer;}
     select.var-sel:focus{border-color:#122f18;}
-
-    /* ── Toast ── */
     .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#122f18;color:#faf6f0;padding:12px 20px;border-radius:10px;font-size:14px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);display:none;white-space:nowrap;}
-    .toast.show{display:block;animation:fadeUp .2s ease;}
-    .toast.err{background:#b91c1c;}
+    .toast.show{display:block;animation:fadeUp .2s ease;} .toast.err{background:#b91c1c;}
     @keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
   </style>
 </head>
 <body>
-
-<!-- NAVBAR -->
 <header class="bg-[#122f18] border-b border-black/60">
   <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:h-[100px] lg:px-20">
     <a href="/index.html"><img src="/assets/logo.png" alt="REUNUSA" class="h-9 w-auto max-w-[140px] object-contain sm:h-10 lg:h-12"/></a>
@@ -85,8 +67,6 @@
     <a href="/index.html" class="lg:hidden text-sm font-medium text-stone-100 hover:text-yellow-200">← Beranda</a>
   </div>
 </header>
-
-<!-- HERO -->
 <section class="bg-[#122f18] px-5 py-10 text-center text-[#faf6f0] sm:py-14">
   <div class="mx-auto max-w-3xl">
     <p class="text-xs font-semibold uppercase tracking-widest text-yellow-300 mb-2">Official Store</p>
@@ -94,45 +74,31 @@
     <p class="mt-3 text-base text-stone-300 sm:text-lg">Bawa pulang kenangan reuni dalam wujud nyata. Pembelian khusus untuk pendaftar Main Event.</p>
   </div>
 </section>
-
-<!-- GRID -->
 <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
   <div id="productGrid" class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"></div>
 </section>
-
-<!-- FLOATING CART -->
 <div id="floatCart" onclick="openCart()">
   <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.8"/><path d="M16 10a4 4 0 0 1-8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
   Keranjang <span id="cartBadge">0</span>
 </div>
-
-<!-- ── PRODUCT DETAIL MODAL ── -->
 <div id="detailModal" class="modal-bg" onclick="if(event.target===this)closeDetail()">
   <div class="modal-box">
     <div class="modal-close"><button onclick="closeDetail()">×</button></div>
     <div class="modal-body">
-      <!-- Slideshow -->
       <div id="dmSlideWrap" class="slide-wrap rounded-xl mb-5" style="border-radius:12px;overflow:hidden;"></div>
-      <!-- Info -->
       <div id="dmInfo"></div>
     </div>
   </div>
 </div>
-
-<!-- ── CHECKOUT MODAL ── -->
 <div id="cartModal" class="ck-modal-bg" onclick="if(event.target===this&&ckStep==='cart')closeCart()">
   <div class="ck-box">
     <button onclick="closeCart()" style="position:absolute;top:14px;right:16px;background:none;border:0;font-size:22px;cursor:pointer;color:#122f18;line-height:1;">×</button>
-
-    <!-- Step: cart -->
     <div id="stepCart" class="step active">
       <h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">Keranjang Belanja</h2>
       <p class="text-sm text-[rgba(26,58,46,.6)] mb-4">Masukkan Kode Tiket untuk melanjutkan.</p>
       <div id="cartItems" class="mb-3 space-y-3"></div>
       <div id="cartEmpty" class="py-8 text-center text-[rgba(26,58,46,.5)] text-sm">Keranjang masih kosong.</div>
-      <div id="cartTotalRow" class="hidden border-t border-[rgba(45,117,86,.2)] pt-3 mb-4">
-        <div class="flex justify-between font-semibold text-[#122f18]"><span>Total</span><span id="totalPrice">Rp 0</span></div>
-      </div>
+      <div id="cartTotalRow" class="hidden border-t border-[rgba(45,117,86,.2)] pt-3 mb-4"><div class="flex justify-between font-semibold text-[#122f18]"><span>Total</span><span id="totalPrice">Rp 0</span></div></div>
       <div class="mb-4">
         <label class="block text-sm font-semibold text-[#122f18] mb-1">Kode Tiket <span class="text-red-600">*</span></label>
         <input id="ticketCodeInput" class="inp" placeholder="Contoh: RNS-ABCDEF" autocomplete="off"/>
@@ -140,35 +106,19 @@
       </div>
       <button class="btn-p" id="btnCheckout">Lanjut ke Pembayaran →</button>
     </div>
-
-    <!-- Step: payment -->
     <div id="stepPayment" class="step">
       <h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">Pembayaran</h2>
       <p id="payNote" class="text-sm text-[rgba(26,58,46,.6)] mb-4"></p>
-      <div class="text-center bg-white rounded-2xl border border-[rgba(45,117,86,.2)] p-4 mb-3">
-        <img src="/assets/qris-reunusa.jpeg" alt="QRIS" class="w-64 max-w-full mx-auto rounded-xl"/>
-      </div>
-      <div class="bg-white border border-[rgba(45,117,86,.2)] rounded-xl p-3 text-sm text-[#1e2a20] mb-3">
-        Atau transfer ke:<ul class="mt-2 space-y-1 pl-4 list-disc">
-          <li><strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong></li>
-          <li><strong>Bank BSI 7298853862</strong> a.n. <strong>ISLAH SINERGI INDONESIA</strong></li>
-        </ul>
-      </div>
-      <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3 text-xs mb-4">
-        ⚠️ Upload bukti pembayaran setelah transfer. Pesanan diverifikasi panitia.
-      </div>
+      <div class="text-center bg-white rounded-2xl border border-[rgba(45,117,86,.2)] p-4 mb-3"><img src="/assets/qris-reunusa.jpeg" alt="QRIS" class="w-64 max-w-full mx-auto rounded-xl"/></div>
+      <div class="bg-white border border-[rgba(45,117,86,.2)] rounded-xl p-3 text-sm text-[#1e2a20] mb-3">Atau transfer ke:<ul class="mt-2 space-y-1 pl-4 list-disc"><li><strong>Bank Mandiri 1370024127132</strong> a.n. <strong>KHANSA QONITA</strong></li><li><strong>Bank BSI 7298853862</strong> a.n. <strong>ISLAH SINERGI INDONESIA</strong></li></ul></div>
+      <div class="bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3 text-xs mb-4">⚠️ Upload bukti pembayaran setelah transfer. Pesanan diverifikasi panitia.</div>
       <div class="mb-4">
         <label class="block text-sm font-semibold text-[#122f18] mb-1">Upload Bukti Pembayaran <span class="text-red-600">*</span></label>
         <input id="mercBukti" type="file" accept="image/*" class="inp" style="padding:8px 12px;height:auto;"/>
         <p id="mercBuktiErr" class="text-red-600 text-xs mt-1 hidden">Wajib upload bukti (gambar, maks. 5MB).</p>
       </div>
-      <div class="flex gap-3">
-        <button class="btn-g" onclick="goStep('stepCart')">← Kembali</button>
-        <button class="btn-p" id="btnPay">Kirim Pesanan</button>
-      </div>
+      <div class="flex gap-3"><button class="btn-g" onclick="goStep('stepCart')">← Kembali</button><button class="btn-p" id="btnPay">Kirim Pesanan</button></div>
     </div>
-
-    <!-- Step: done -->
     <div id="stepDone" class="step text-center py-8">
       <div class="text-5xl mb-4">🎉</div>
       <h2 class="font-display text-2xl font-bold text-[#122f18] mb-2">Pesanan Terkirim!</h2>
@@ -177,479 +127,164 @@
     </div>
   </div>
 </div>
-
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
-
-<!-- FOOTER -->
 <footer class="bg-[#1e2a20] px-5 py-10 text-stone-100 sm:px-8 sm:py-12 lg:px-24 mt-8">
   <div class="mx-auto max-w-7xl">
-    <div class="flex flex-col gap-3">
-      <img src="/assets/logo.png" alt="REUNUSA" class="h-12 w-auto max-w-[160px] object-contain object-left"/>
-      <p class="text-lg font-semibold">Reuni Nusantara</p>
-      <p class="max-w-md text-sm text-white/90">Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan Jawa Barat 45554.</p>
-    </div>
+    <div class="flex flex-col gap-3"><img src="/assets/logo.png" alt="REUNUSA" class="h-12 w-auto max-w-[160px] object-contain object-left"/><p class="text-lg font-semibold">Reuni Nusantara</p><p class="max-w-md text-sm text-white/90">Pondok Pesantren Husnul Khotimah, Kec. Jalaksana, Kab. Kuningan Jawa Barat 45554.</p></div>
     <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3">
-      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Navigasi</p>
-        <ul class="mt-2 space-y-2 text-sm text-white/80">
-          <li><a href="/index.html" class="hover:text-yellow-200">Beranda</a></li>
-          <li><a href="/merchandise.html" class="hover:text-yellow-200">Merchandise</a></li>
-          <li><a href="/index.html#faq" class="hover:text-yellow-200">FAQ</a></li>
-        </ul>
-      </div>
-      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Aksi Utama</p>
-        <ul class="mt-2 space-y-2 text-sm text-white/80">
-          <li><a href="/register.html" class="hover:text-yellow-200">Daftar</a></li>
-          <li><a href="/index.html#cari" class="hover:text-yellow-200">Cari Tiket</a></li>
-        </ul>
-      </div>
-      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Hubungi Panitia</p>
-        <ul class="mt-2 space-y-2 text-sm text-white/80">
-          <li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla</a></li>
-          <li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal</a></li>
-        </ul>
-      </div>
+      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Navigasi</p><ul class="mt-2 space-y-2 text-sm text-white/80"><li><a href="/index.html" class="hover:text-yellow-200">Beranda</a></li><li><a href="/merchandise.html" class="hover:text-yellow-200">Merchandise</a></li><li><a href="/index.html#faq" class="hover:text-yellow-200">FAQ</a></li></ul></div>
+      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Aksi Utama</p><ul class="mt-2 space-y-2 text-sm text-white/80"><li><a href="/register.html" class="hover:text-yellow-200">Daftar</a></li><li><a href="/index.html#cari" class="hover:text-yellow-200">Cari Tiket</a></li></ul></div>
+      <div><p class="text-xs font-semibold uppercase tracking-widest text-white">Hubungi Panitia</p><ul class="mt-2 space-y-2 text-sm text-white/80"><li><a href="https://wa.me/6282118942672" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 821-1894-2672 Najla</a></li><li><a href="https://wa.me/6285150797419" target="_blank" rel="noopener" class="hover:text-yellow-200">+62 851-5079-7419 Naufal</a></li></ul></div>
     </div>
     <hr class="my-6 border-white/15"/>
     <p class="text-center text-xs text-white/60">© 2026 REUNUSA. Hak Cipta Dilindungi.</p>
   </div>
 </footer>
 
+<!-- =========================================================
+     LOGIKA MERCHANDISE — panggil /api/merchandise & /api/pendaftar
+     Tidak ada lagi supabase.createClient() atau window.__ENV.
+     ========================================================= -->
 <script>
-// ── Supabase ──────────────────────────────────────────────────────────────
-const SUPABASE_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
-const SUPABASE_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 const fmt = n => 'Rp ' + Number(n).toLocaleString('id-ID');
 const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// ── Image path helpers ─────────────────────────────────────────────────────
 const M = '/assets/merch/';
 const R = M+'root/';
-const GK = v => ({ // Gantungan Kunci per varian
-  'Logo Reunusa':         R+'gantungan-kunci-logo-reunusa.webp',
-  'Kubah Al Husna':       R+'gantungan-kunci-kubah-al-husna.webp',
-  'Reminiscing Memories': R+'gantungan-kunci-reminiscing-memories.webp',
-})[v] || R+'gantungan-kunci-logo-reunusa.webp';
+const GK = v => ({'Logo Reunusa':R+'gantungan-kunci-logo-reunusa.webp','Kubah Al Husna':R+'gantungan-kunci-kubah-al-husna.webp','Reminiscing Memories':R+'gantungan-kunci-reminiscing-memories.webp'}[v] || R+'gantungan-kunci-logo-reunusa.webp');
 
-// ── Katalog produk ─────────────────────────────────────────────────────────
 const PRODUCTS = [
-  {
-    id:1, name:'Gantungan Kunci', price:10000, priceOri:15000, disc:33,
-    varLabel:'Pilih Motif',
-    variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],
-    // images(variant) → array of URLs
-    images: v => [GK(v)],
-  },
-  {
-    id:2, name:'Sticker', price:5000, priceOri:7500, disc:33,
-    varLabel:'Pilih Motif',
-    variants:['Logo Reunusa','A Place Called Home','Beda Generasi 1 Islah'],
-    images: v => ({
-      'Logo Reunusa':         [R+'sticker-logo-reunusa.webp'],
-      'A Place Called Home':  [R+'sticker-a-place-called-home.webp'],
-      'Beda Generasi 1 Islah':[R+'sticker-beda-generasi-1-islah.webp'],
-    }[v] || [R+'sticker-logo-reunusa.webp']),
-  },
-  {
-    id:3, name:'Sticker Pack', price:29000, priceOri:40000, disc:27,
-    varLabel:'Variasi', variants:['Reunusa Sticker Pack'],
-    images: _ => [R+'sticker-pack.webp'],
-  },
-  {
-    id:4, name:'Totebag', price:65000, priceOri:99000, disc:34,
-    varLabel:'Variasi', variants:['Kangen Al Husna'],
-    images: _ => [R+'totebag.webp'],
-  },
-  {
-    id:5, name:'Tumbler', price:129000, priceOri:189000, disc:32,
-    varLabel:'Variasi', variants:['Tumbler Reunusa'],
-    images: _ => [R+'tumbler.webp'],
-  },
-  {
-    id:6, name:'Topi', price:65000, priceOri:99000, disc:34,
-    varLabel:'Variasi', variants:['Semua Kangen HK'],
-    images: _ => [R+'topi.webp'],
-  },
-  {
-    id:7, name:'Enamel Pin', price:39000, priceOri:59000, disc:34,
-    varLabel:'Variasi', variants:['Logo Reunusa'],
-    images: _ => [R+'enamel-pin.webp'],
-  },
-  {
-    id:8, name:'Bundling Starter Pack', price:35000, priceOri:55000, disc:29,
-    desc:'Sticker Pack + Gantungan Kunci',
-    varLabel:'Pilih Motif Ganci',
-    variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],
-    images: v => {
-      const sp = M+'starter-pack/';
-      const gk = {
-        'Logo Reunusa':         sp+'gantungan-kunci-logo-reunusa.webp',
-        'Kubah Al Husna':       sp+'gantungan-kunci-kubah-al-husna.webp',
-        'Reminiscing Memories': sp+'gantungan-kunci-reminiscing-memories.webp',
-      }[v] || sp+'gantungan-kunci-logo-reunusa.webp';
-      return [sp+'sticker-pack.webp', gk];
-    },
-  },
-  {
-    id:9, name:'Bundling Standard Pack', price:89000, priceOri:154000, disc:42,
-    desc:'Totebag/Topi + Sticker Pack + Gantungan Kunci',
-    varLabel:'Pilih Totebag/Topi & Motif Ganci',
-    variants:[
-      'Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories',
-      'Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories',
-    ],
-    images: v => {
-      const sp = M+'standard-pack/';
-      const isTopi = v.startsWith('Topi');
-      const base = isTopi ? sp+'topi.webp' : sp+'totebag.webp';
-      const motif = v.includes('Kubah') ? 'kubah-al-husna' : v.includes('Reminiscing') ? 'reminiscing-memories' : 'logo-reunusa';
-      return [base, sp+'sticker-pack.webp', sp+`gantungan-kunci-${motif}.webp`];
-    },
-  },
-  {
-    id:10, name:'Bundling Favorite Pack', price:99000, priceOri:173000, disc:43,
-    desc:'Totebag/Topi + Enamel Pin + Gantungan Kunci',
-    varLabel:'Pilih Totebag/Topi & Motif Ganci',
-    variants:[
-      'Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories',
-      'Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories',
-    ],
-    images: v => {
-      const sp = M+'favorite-pack/';
-      const isTopi = v.startsWith('Topi');
-      const base = isTopi ? sp+'topi.webp' : sp+'totebag.webp';
-      const motif = v.includes('Kubah') ? 'kubah-al-husna' : v.includes('Reminiscing') ? 'reminiscing-memories' : 'logo-reunusa';
-      return [base, sp+'enamel-pin.webp', sp+`gantungan-kunci-${motif}.webp`];
-    },
-  },
-  {
-    id:11, name:'Bundling Signature Pack', price:159000, priceOri:244000, disc:35,
-    desc:'Tumbler + Sticker Pack + Gantungan Kunci',
-    varLabel:'Pilih Motif Ganci',
-    variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],
-    images: v => {
-      const sp = M+'signature-pack/';
-      const motif = v.includes('Kubah') ? 'kubah-al-husna' : v.includes('Reminiscing') ? 'reminiscing-memories' : 'logo-reunusa';
-      return [sp+'tumbler.webp', sp+'sticker-pack.webp', sp+`gantungan-kunci-${motif}.webp`];
-    },
-  },
-  {
-    id:12, name:'Bundling Collector Pack', price:199000, priceOri:362000, disc:45,
-    desc:'Tumbler + Totebag/Topi + Sticker Pack + Gantungan Kunci',
-    varLabel:'Pilih Totebag/Topi & Motif Ganci',
-    variants:[
-      'Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories',
-      'Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories',
-    ],
-    images: v => {
-      const sp = M+'collector-pack/';
-      const isTopi = v.startsWith('Topi');
-      const base = isTopi ? sp+'topi.webp' : sp+'totebag.webp';
-      const motif = v.includes('Kubah') ? 'kubah-al-husna' : v.includes('Reminiscing') ? 'reminiscing-memories' : 'logo-reunusa';
-      return [sp+'tumbler.webp', base, sp+'sticker-pack.webp', sp+`gantungan-kunci-${motif}.webp`];
-    },
-  },
+  {id:1,name:'Gantungan Kunci',price:10000,priceOri:15000,disc:33,varLabel:'Pilih Motif',variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],images:v=>[GK(v)]},
+  {id:2,name:'Sticker',price:5000,priceOri:7500,disc:33,varLabel:'Pilih Motif',variants:['Logo Reunusa','A Place Called Home','Beda Generasi 1 Islah'],images:v=>({'Logo Reunusa':[R+'sticker-logo-reunusa.webp'],'A Place Called Home':[R+'sticker-a-place-called-home.webp'],'Beda Generasi 1 Islah':[R+'sticker-beda-generasi-1-islah.webp']}[v]||[R+'sticker-logo-reunusa.webp'])},
+  {id:3,name:'Sticker Pack',price:29000,priceOri:40000,disc:27,varLabel:'Variasi',variants:['Reunusa Sticker Pack'],images:_=>[R+'sticker-pack.webp']},
+  {id:4,name:'Totebag',price:65000,priceOri:99000,disc:34,varLabel:'Variasi',variants:['Kangen Al Husna'],images:_=>[R+'totebag.webp']},
+  {id:5,name:'Tumbler',price:129000,priceOri:189000,disc:32,varLabel:'Variasi',variants:['Tumbler Reunusa'],images:_=>[R+'tumbler.webp']},
+  {id:6,name:'Topi',price:65000,priceOri:99000,disc:34,varLabel:'Variasi',variants:['Semua Kangen HK'],images:_=>[R+'topi.webp']},
+  {id:7,name:'Enamel Pin',price:39000,priceOri:59000,disc:34,varLabel:'Variasi',variants:['Logo Reunusa'],images:_=>[R+'enamel-pin.webp']},
+  {id:8,name:'Bundling Starter Pack',price:35000,priceOri:55000,disc:29,desc:'Sticker Pack + Gantungan Kunci',varLabel:'Pilih Motif Ganci',variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],images:v=>{const sp=M+'starter-pack/';const gk={'Logo Reunusa':sp+'gantungan-kunci-logo-reunusa.webp','Kubah Al Husna':sp+'gantungan-kunci-kubah-al-husna.webp','Reminiscing Memories':sp+'gantungan-kunci-reminiscing-memories.webp'}[v]||sp+'gantungan-kunci-logo-reunusa.webp';return[sp+'sticker-pack.webp',gk];}},
+  {id:9,name:'Bundling Standard Pack',price:89000,priceOri:154000,disc:42,desc:'Totebag/Topi + Sticker Pack + Gantungan Kunci',varLabel:'Pilih Totebag/Topi & Motif Ganci',variants:['Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories','Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories'],images:v=>{const sp=M+'standard-pack/';const isTopi=v.startsWith('Topi');const base=isTopi?sp+'topi.webp':sp+'totebag.webp';const motif=v.includes('Kubah')?'kubah-al-husna':v.includes('Reminiscing')?'reminiscing-memories':'logo-reunusa';return[base,sp+'sticker-pack.webp',sp+`gantungan-kunci-${motif}.webp`];}},
+  {id:10,name:'Bundling Favorite Pack',price:99000,priceOri:173000,disc:43,desc:'Totebag/Topi + Enamel Pin + Gantungan Kunci',varLabel:'Pilih Totebag/Topi & Motif Ganci',variants:['Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories','Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories'],images:v=>{const sp=M+'favorite-pack/';const isTopi=v.startsWith('Topi');const base=isTopi?sp+'topi.webp':sp+'totebag.webp';const motif=v.includes('Kubah')?'kubah-al-husna':v.includes('Reminiscing')?'reminiscing-memories':'logo-reunusa';return[base,sp+'enamel-pin.webp',sp+`gantungan-kunci-${motif}.webp`];}},
+  {id:11,name:'Bundling Signature Pack',price:159000,priceOri:244000,disc:35,desc:'Tumbler + Sticker Pack + Gantungan Kunci',varLabel:'Pilih Motif Ganci',variants:['Logo Reunusa','Kubah Al Husna','Reminiscing Memories'],images:v=>{const sp=M+'signature-pack/';const motif=v.includes('Kubah')?'kubah-al-husna':v.includes('Reminiscing')?'reminiscing-memories':'logo-reunusa';return[sp+'tumbler.webp',sp+'sticker-pack.webp',sp+`gantungan-kunci-${motif}.webp`];}},
+  {id:12,name:'Bundling Collector Pack',price:199000,priceOri:362000,disc:45,desc:'Tumbler + Totebag/Topi + Sticker Pack + Gantungan Kunci',varLabel:'Pilih Totebag/Topi & Motif Ganci',variants:['Totebag + Logo Reunusa','Totebag + Kubah Al Husna','Totebag + Reminiscing Memories','Topi + Logo Reunusa','Topi + Kubah Al Husna','Topi + Reminiscing Memories'],images:v=>{const sp=M+'collector-pack/';const isTopi=v.startsWith('Topi');const base=isTopi?sp+'topi.webp':sp+'totebag.webp';const motif=v.includes('Kubah')?'kubah-al-husna':v.includes('Reminiscing')?'reminiscing-memories':'logo-reunusa';return[sp+'tumbler.webp',base,sp+'sticker-pack.webp',sp+`gantungan-kunci-${motif}.webp`];}},
 ];
 
-// ── Slideshow engine ───────────────────────────────────────────────────────
-function buildSlideshow(container, imgs, small = false) {
-  if (!imgs || imgs.length === 0) {
-    container.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#f0fdf4;"><span style="font-size:40px;">📦</span></div>`;
-    return;
-  }
-  container.innerHTML = '';
-
-  // Track
-  const track = document.createElement('div');
-  track.className = 'slide-track';
-  imgs.forEach(src => {
-    const img = document.createElement('img');
-    img.src = src; img.loading = 'lazy'; img.alt = '';
-    track.appendChild(img);
-  });
+function buildSlideshow(container, imgs) {
+  if (!imgs||!imgs.length){container.innerHTML=`<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#f0fdf4;"><span style="font-size:40px;">📦</span></div>`;return;}
+  container.innerHTML='';
+  const track=document.createElement('div');track.className='slide-track';
+  imgs.forEach(src=>{const img=document.createElement('img');img.src=src;img.loading='lazy';img.alt='';track.appendChild(img);});
   container.appendChild(track);
-
-  if (imgs.length <= 1) return;
-
-  // Prev/Next
-  ['prev','next'].forEach(dir => {
-    const btn = document.createElement('button');
-    btn.className = `slide-btn ${dir}`;
-    btn.innerHTML = dir === 'prev'
-      ? '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#122f18" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>'
-      : '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#122f18" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';
-    btn.onclick = e => { e.stopPropagation(); move(dir === 'next' ? 1 : -1); };
-    container.appendChild(btn);
-  });
-
-  // Dots
-  const dotsEl = document.createElement('div');
-  dotsEl.className = 'slide-dots';
-  imgs.forEach((_,i) => {
-    const d = document.createElement('button');
-    d.className = 'slide-dot' + (i===0?' active':'');
-    d.onclick = e => { e.stopPropagation(); goTo(i); };
-    dotsEl.appendChild(d);
-  });
-  container.appendChild(dotsEl);
-
-  let cur = 0;
-  const goTo = idx => {
-    cur = (idx + imgs.length) % imgs.length;
-    track.style.transform = `translateX(-${cur*100}%)`;
-    dotsEl.querySelectorAll('.slide-dot').forEach((d,i) => d.classList.toggle('active', i===cur));
-  };
-  const move = d => goTo(cur + d);
-
-  // Touch/drag swipe
-  let startX = 0;
-  container.addEventListener('pointerdown', e => { startX = e.clientX; });
-  container.addEventListener('pointerup', e => {
-    const dx = e.clientX - startX;
-    if (Math.abs(dx) > 40) move(dx < 0 ? 1 : -1);
-  });
-
-  // Expose refresh for variant change
-  container._goTo = goTo;
-  container._getImgs = () => imgs;
+  if(imgs.length<=1)return;
+  ['prev','next'].forEach(dir=>{const btn=document.createElement('button');btn.className=`slide-btn ${dir}`;btn.innerHTML=dir==='prev'?'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#122f18" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>':'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#122f18" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>';btn.onclick=e=>{e.stopPropagation();move(dir==='next'?1:-1);};container.appendChild(btn);});
+  const dotsEl=document.createElement('div');dotsEl.className='slide-dots';
+  imgs.forEach((_,i)=>{const d=document.createElement('button');d.className='slide-dot'+(i===0?' active':'');d.onclick=e=>{e.stopPropagation();goTo(i);};dotsEl.appendChild(d);});container.appendChild(dotsEl);
+  let cur=0;
+  const goTo=idx=>{cur=(idx+imgs.length)%imgs.length;track.style.transform=`translateX(-${cur*100}%)`;dotsEl.querySelectorAll('.slide-dot').forEach((d,i)=>d.classList.toggle('active',i===cur));};
+  const move=d=>goTo(cur+d);
+  let startX=0;
+  container.addEventListener('pointerdown',e=>{startX=e.clientX;});
+  container.addEventListener('pointerup',e=>{const dx=e.clientX-startX;if(Math.abs(dx)>40)move(dx<0?1:-1);});
+  container._goTo=goTo;
 }
 
-// ── Render grid ────────────────────────────────────────────────────────────
 function renderProducts() {
-  const grid = document.getElementById('productGrid');
-  grid.innerHTML = PRODUCTS.map(p => {
-    const defVar = p.variants[0];
-    const imgs = p.images(defVar);
-    const hasMany = imgs.length > 1;
-    return `
-    <div class="prod-card" data-pid="${p.id}">
-      <div class="slide-wrap" id="sw-${p.id}" style="border-radius:0;">
-        ${imgs.map((src,i) => `<img src="${src}" loading="lazy" alt="${esc(p.name)}" style="flex:0 0 100%;width:100%;height:100%;object-fit:cover;"/>`).join('')}
-      </div>
-      <div class="flex-1 flex flex-col p-3">
-        <div class="flex items-start justify-between gap-1 mb-0.5">
-          <h3 class="font-semibold text-[#122f18] text-sm leading-tight">${esc(p.name)}</h3>
-          <span class="disc-badge flex-shrink-0">-${p.disc}%</span>
-        </div>
-        ${p.desc ? `<p class="text-[10px] text-[rgba(26,58,46,.5)] mb-1.5">${esc(p.desc)}</p>` : ''}
-        <div class="flex items-center gap-1.5 mt-auto mb-2">
-          <span class="font-bold text-[#122f18] text-sm">${fmt(p.price)}</span>
-          <span class="text-xs line-through text-[rgba(26,58,46,.4)]">${fmt(p.priceOri)}</span>
-        </div>
-        <button onclick="openDetail(${p.id})"
-          class="w-full py-2 px-3 bg-[#f0fdf4] border border-[#86efac] text-[#166534] rounded-xl font-semibold text-xs hover:bg-[#dcfce7] transition-colors">
-          Lihat Detail →
-        </button>
-      </div>
-    </div>`;
+  const grid=document.getElementById('productGrid');
+  grid.innerHTML=PRODUCTS.map(p=>{
+    const imgs=p.images(p.variants[0]);
+    return `<div class="prod-card" data-pid="${p.id}"><div class="slide-wrap" id="sw-${p.id}" style="border-radius:0;"></div><div class="flex-1 flex flex-col p-3"><div class="flex items-start justify-between gap-1 mb-0.5"><h3 class="font-semibold text-[#122f18] text-sm leading-tight">${esc(p.name)}</h3><span class="disc-badge flex-shrink-0">-${p.disc}%</span></div>${p.desc?`<p class="text-[10px] text-[rgba(26,58,46,.5)] mb-1.5">${esc(p.desc)}</p>`:''}<div class="flex items-center gap-1.5 mt-auto mb-2"><span class="font-bold text-[#122f18] text-sm">${fmt(p.price)}</span><span class="text-xs line-through text-[rgba(26,58,46,.4)]">${fmt(p.priceOri)}</span></div><button onclick="openDetail(${p.id})" class="w-full py-2 px-3 bg-[#f0fdf4] border border-[#86efac] text-[#166634] rounded-xl font-semibold text-xs hover:bg-[#dcfce7] transition-colors">Lihat Detail →</button></div></div>`;
   }).join('');
-
-  // Init slideshows on cards (static, no variant switching on card)
-  PRODUCTS.forEach(p => {
-    const wrap = document.getElementById('sw-'+p.id);
-    if (!wrap) return;
-    wrap.classList.add('slide-wrap');
-    const imgs = p.images(p.variants[0]);
-    // Re-build with engine
-    buildSlideshow(wrap, imgs, true);
-  });
+  PRODUCTS.forEach(p=>{const wrap=document.getElementById('sw-'+p.id);if(!wrap)return;wrap.classList.add('slide-wrap');buildSlideshow(wrap,p.images(p.variants[0]));});
 }
 renderProducts();
 
-// ── Detail Modal ───────────────────────────────────────────────────────────
-let dmPid = null;
-
-function openDetail(pid) {
-  dmPid = pid;
-  const p = PRODUCTS.find(x => x.id === pid);
-  if (!p) return;
-
-  // Build slideshow
-  const slideWrap = document.getElementById('dmSlideWrap');
-  slideWrap.style.height = '300px';
-  const defVar = p.variants[0];
-  buildSlideshow(slideWrap, p.images(defVar));
-
-  // Build info
-  const varOpts = p.variants.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-  const hasMultiVar = p.variants.length > 1;
-
-  document.getElementById('dmInfo').innerHTML = `
-    <h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">${esc(p.name)}</h2>
-    ${p.desc ? `<p class="text-sm text-[rgba(26,58,46,.55)] mb-3">${esc(p.desc)}</p>` : ''}
-    <div class="flex items-center gap-3 mb-4">
-      <span class="text-2xl font-bold text-[#122f18]">${fmt(p.price)}</span>
-      <span class="text-base line-through text-[rgba(26,58,46,.4)]">${fmt(p.priceOri)}</span>
-      <span class="disc-badge">-${p.disc}%</span>
-    </div>
-    ${hasMultiVar ? `
-    <div class="mb-4">
-      <label class="block text-xs font-semibold uppercase tracking-wide text-[rgba(26,58,46,.55)] mb-1">${esc(p.varLabel)}</label>
-      <select id="dmVar" class="var-sel" onchange="onDmVarChange(${pid},this.value)">${varOpts}</select>
-    </div>` : `
-    <div class="mb-4">
-      <span class="text-sm font-medium text-[#122f18] px-3 py-1.5 bg-[#f0fdf4] rounded-lg inline-block">${esc(p.variants[0])}</span>
-    </div>`}
-    <button onclick="addToCart(${pid})"
-      class="w-full py-3 px-4 bg-[#122f18] text-[#faf6f0] rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-      + Tambah ke Keranjang
-    </button>
-  `;
-
+let dmPid=null;
+function openDetail(pid){
+  dmPid=pid;const p=PRODUCTS.find(x=>x.id===pid);if(!p)return;
+  const slideWrap=document.getElementById('dmSlideWrap');slideWrap.style.height='300px';
+  buildSlideshow(slideWrap,p.images(p.variants[0]));
+  const varOpts=p.variants.map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  const hasMultiVar=p.variants.length>1;
+  document.getElementById('dmInfo').innerHTML=`<h2 class="font-display text-2xl font-bold text-[#122f18] mb-1">${esc(p.name)}</h2>${p.desc?`<p class="text-sm text-[rgba(26,58,46,.55)] mb-3">${esc(p.desc)}</p>`:''}<div class="flex items-center gap-3 mb-4"><span class="text-2xl font-bold text-[#122f18]">${fmt(p.price)}</span><span class="text-base line-through text-[rgba(26,58,46,.4)]">${fmt(p.priceOri)}</span><span class="disc-badge">-${p.disc}%</span></div>${hasMultiVar?`<div class="mb-4"><label class="block text-xs font-semibold uppercase tracking-wide text-[rgba(26,58,46,.55)] mb-1">${esc(p.varLabel)}</label><select id="dmVar" class="var-sel" onchange="onDmVarChange(${pid},this.value)">${varOpts}</select></div>`:`<div class="mb-4"><span class="text-sm font-medium text-[#122f18] px-3 py-1.5 bg-[#f0fdf4] rounded-lg inline-block">${esc(p.variants[0])}</span></div>`}<button onclick="addToCart(${pid})" class="w-full py-3 px-4 bg-[#122f18] text-[#faf6f0] rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">+ Tambah ke Keranjang</button>`;
   document.getElementById('detailModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow='hidden';
 }
+function onDmVarChange(pid,variant){const p=PRODUCTS.find(x=>x.id===pid);if(!p)return;buildSlideshow(document.getElementById('dmSlideWrap'),p.images(variant));}
+function closeDetail(){document.getElementById('detailModal').classList.remove('open');document.body.style.overflow='';}
 
-function onDmVarChange(pid, variant) {
-  const p = PRODUCTS.find(x => x.id === pid);
-  if (!p) return;
-  const slideWrap = document.getElementById('dmSlideWrap');
-  buildSlideshow(slideWrap, p.images(variant));
+let cart=[],ckStep='cart',validatedReg=null;
+function addToCart(pid){
+  const p=PRODUCTS.find(x=>x.id===pid);if(!p)return;
+  const selEl=document.getElementById('dmVar');const variant=selEl?selEl.value:p.variants[0];
+  const existing=cart.find(c=>c.pid===pid&&c.variant===variant);
+  if(existing)existing.qty++;else cart.push({pid,name:p.name,variant,price:p.price,qty:1});
+  updateBadge();showToast(`"${p.name}" ditambahkan ✓`);closeDetail();
 }
+function removeFromCart(pid,variant){cart=cart.filter(c=>!(c.pid===pid&&c.variant===variant));updateBadge();renderCartItems();}
+function updateBadge(){document.getElementById('cartBadge').textContent=cart.reduce((s,c)=>s+c.qty,0);}
+function cartTotal(){return cart.reduce((s,c)=>s+c.price*c.qty,0);}
+function renderCartItems(){
+  const box=document.getElementById('cartItems'),empty=document.getElementById('cartEmpty'),totalRow=document.getElementById('cartTotalRow');
+  if(!cart.length){box.innerHTML='';empty.style.display='';totalRow.classList.add('hidden');return;}
+  empty.style.display='none';totalRow.classList.remove('hidden');
+  box.innerHTML=cart.map(c=>`<div class="flex items-center gap-3 bg-white rounded-xl p-3 border border-[rgba(45,117,86,.15)]"><div class="flex-1"><p class="font-semibold text-sm text-[#122f18]">${esc(c.name)}</p><p class="text-xs text-[rgba(26,58,46,.6)]">${esc(c.variant)} × ${c.qty}</p></div><div class="text-sm font-bold text-[#122f18]">${fmt(c.price*c.qty)}</div><button onclick="removeFromCart(${c.pid},'${c.variant.replace(/'/g,"\\'")}')"
+ class="text-red-400 hover:text-red-600 text-xl leading-none">×</button></div>`).join('');
+  document.getElementById('totalPrice').textContent=fmt(cartTotal());
+}
+function openCart(){goStep('stepCart');renderCartItems();document.getElementById('cartModal').classList.add('open');document.body.style.overflow='hidden';}
+function closeCart(){document.getElementById('cartModal').classList.remove('open');document.body.style.overflow='';}
+function goStep(id){ckStep=id.replace('step','').toLowerCase();['stepCart','stepPayment','stepDone'].forEach(s=>{document.getElementById(s).classList.toggle('active',s===id);});}
 
-function closeDetail() {
-  document.getElementById('detailModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-// ── Cart ───────────────────────────────────────────────────────────────────
-let cart = [];
-let ckStep = 'cart';
-let validatedReg = null;
-
-function addToCart(pid) {
-  const p = PRODUCTS.find(x => x.id === pid);
-  if (!p) return;
-  const selEl = document.getElementById('dmVar');
-  const variant = selEl ? selEl.value : p.variants[0];
-  const existing = cart.find(c => c.pid === pid && c.variant === variant);
-  if (existing) existing.qty++;
-  else cart.push({ pid, name: p.name, variant, price: p.price, qty: 1 });
-  updateBadge();
-  showToast(`"${p.name}" ditambahkan ✓`);
-  closeDetail();
-}
-
-function removeFromCart(pid, variant) {
-  cart = cart.filter(c => !(c.pid === pid && c.variant === variant));
-  updateBadge();
-  renderCartItems();
-}
-
-function updateBadge() {
-  document.getElementById('cartBadge').textContent = cart.reduce((s,c) => s+c.qty, 0);
-}
-
-function cartTotal() {
-  return cart.reduce((s,c) => s + c.price*c.qty, 0);
-}
-
-function renderCartItems() {
-  const box = document.getElementById('cartItems');
-  const empty = document.getElementById('cartEmpty');
-  const totalRow = document.getElementById('cartTotalRow');
-  if (!cart.length) {
-    box.innerHTML = ''; empty.style.display = ''; totalRow.classList.add('hidden'); return;
-  }
-  empty.style.display = 'none'; totalRow.classList.remove('hidden');
-  box.innerHTML = cart.map(c => `
-    <div class="flex items-center gap-3 bg-white rounded-xl p-3 border border-[rgba(45,117,86,.15)]">
-      <div class="flex-1">
-        <p class="font-semibold text-sm text-[#122f18]">${esc(c.name)}</p>
-        <p class="text-xs text-[rgba(26,58,46,.6)]">${esc(c.variant)} × ${c.qty}</p>
-      </div>
-      <div class="text-sm font-bold text-[#122f18]">${fmt(c.price*c.qty)}</div>
-      <button onclick="removeFromCart(${c.pid},'${c.variant.replace(/'/g,"\\'")}')" class="text-red-400 hover:text-red-600 text-xl leading-none">×</button>
-    </div>`).join('');
-  document.getElementById('totalPrice').textContent = fmt(cartTotal());
-}
-
-function openCart() {
-  goStep('stepCart');
-  renderCartItems();
-  document.getElementById('cartModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeCart() {
-  document.getElementById('cartModal').classList.remove('open');
-  document.body.style.overflow = '';
-}
-function goStep(id) {
-  ckStep = id.replace('step','').toLowerCase();
-  ['stepCart','stepPayment','stepDone'].forEach(s => {
-    document.getElementById(s).classList.toggle('active', s === id);
-  });
-}
-
-// Checkout — validasi kode tiket
+// Checkout: validasi kode tiket via /api/pendaftar
 document.getElementById('btnCheckout').addEventListener('click', async () => {
-  const errEl = document.getElementById('ticketCodeErr');
-  const inp = document.getElementById('ticketCodeInput');
-  errEl.classList.add('hidden'); inp.classList.remove('invalid');
-  if (!cart.length) { showToast('Keranjang masih kosong!', true); return; }
-  const code = inp.value.trim().toUpperCase();
-  if (!code) { inp.classList.add('invalid'); errEl.textContent='Kode Tiket wajib diisi.'; errEl.classList.remove('hidden'); return; }
-  const btn = document.getElementById('btnCheckout');
-  btn.disabled = true; btn.textContent = 'Memverifikasi...';
-  try {
-    const { data, error } = await sb.rpc('get_registration_by_code', { _registration_code: code });
-    const row = Array.isArray(data) ? data[0] : data;
-    if (error || !row) {
-      inp.classList.add('invalid');
-      errEl.textContent = 'Kode Tiket tidak valid. Silakan daftar main event terlebih dahulu.';
-      errEl.classList.remove('hidden'); return;
-    }
-    validatedReg = row;
-    document.getElementById('payNote').textContent =
-      `Halo ${row.full_name||'Kak'}! Total: ${fmt(cartTotal())}. Scan QRIS atau transfer, lalu upload bukti.`;
+  const errEl=document.getElementById('ticketCodeErr'),inp=document.getElementById('ticketCodeInput');
+  errEl.classList.add('hidden');inp.classList.remove('invalid');
+  if(!cart.length){showToast('Keranjang masih kosong!',true);return;}
+  const code=inp.value.trim().toUpperCase();
+  if(!code){inp.classList.add('invalid');errEl.textContent='Kode Tiket wajib diisi.';errEl.classList.remove('hidden');return;}
+  const btn=document.getElementById('btnCheckout');
+  btn.disabled=true;btn.textContent='Memverifikasi...';
+  try{
+    const res  = await fetch(`/api/merchandise?action=validate_ticket&code=${encodeURIComponent(code)}`);
+    const row  = await res.json();
+    if(!res.ok||!row){inp.classList.add('invalid');errEl.textContent='Kode Tiket tidak valid. Silakan daftar main event terlebih dahulu.';errEl.classList.remove('hidden');return;}
+    validatedReg=row;
+    document.getElementById('payNote').textContent=`Halo ${row.full_name||'Kak'}! Total: ${fmt(cartTotal())}. Scan QRIS atau transfer, lalu upload bukti.`;
     goStep('stepPayment');
-  } catch(e) {
-    errEl.textContent = 'Gagal: ' + e.message; errEl.classList.remove('hidden');
-  } finally { btn.disabled = false; btn.textContent = 'Lanjut ke Pembayaran →'; }
+  }catch(e){errEl.textContent='Gagal: '+e.message;errEl.classList.remove('hidden');}
+  finally{btn.disabled=false;btn.textContent='Lanjut ke Pembayaran →';}
 });
 
-// Kirim pesanan
+// Kirim pesanan via /api/merchandise
 document.getElementById('btnPay').addEventListener('click', async () => {
-  const buktiEl = document.getElementById('mercBukti');
-  const buktiErr = document.getElementById('mercBuktiErr');
-  const f = buktiEl.files && buktiEl.files[0];
-  const bad = !f || !/^image\//.test(f.type) || f.size > 5*1024*1024;
-  buktiErr.classList.toggle('hidden', !bad); if (bad) return;
-  const btn = document.getElementById('btnPay');
-  btn.disabled = true; btn.textContent = 'Mengunggah...';
-  try {
-    const regCode = validatedReg.registration_code;
-    const ext = (f.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'') || 'jpg';
-    const path = `merch-${regCode}-${Date.now()}.${ext}`;
-    const { error: upErr } = await sb.storage.from('receipts').upload(path, f, { contentType: f.type, upsert: false });
-    if (upErr) throw new Error('Upload gagal: ' + upErr.message);
-    const { data: pub } = sb.storage.from('receipts').getPublicUrl(path);
-    const proofUrl = pub?.publicUrl || null;
-    const items = cart.map(c => ({ name: c.name, variant: c.variant, qty: c.qty, price: c.price }));
-    const { error: insErr } = await sb.from('merchandise_orders').insert({
-      registration_code: regCode,
-      full_name: validatedReg.full_name || '',
-      email: validatedReg.email || '',
-      items, total_amount: cartTotal(),
-      payment_proof_url: proofUrl,
-      payment_status: 'pending',
-    });
-    if (insErr) throw new Error('Simpan gagal: ' + insErr.message);
-    cart = []; updateBadge(); validatedReg = null; buktiEl.value = '';
+  const buktiEl=document.getElementById('mercBukti'),buktiErr=document.getElementById('mercBuktiErr');
+  const f=buktiEl.files&&buktiEl.files[0];const bad=!f||!/^image\//.test(f.type)||f.size>5*1024*1024;
+  buktiErr.classList.toggle('hidden',!bad);if(bad)return;
+  const btn=document.getElementById('btnPay');
+  btn.disabled=true;btn.textContent='Mengunggah...';
+  try{
+    const regCode=validatedReg.registration_code;
+    const ext=(f.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'')||'jpg';
+    const path=`merch-${regCode}-${Date.now()}.${ext}`;
+    const fileBase64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});
+    const upRes  = await fetch('/api/merchandise?action=upload_receipt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fileBase64,contentType:f.type,path})});
+    const upData = await upRes.json();
+    if(!upRes.ok)throw new Error('Upload gagal: '+upData.error);
+    const proofUrl=upData.publicUrl;
+    const items=cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price}));
+    const ordRes = await fetch('/api/merchandise?action=insert_order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({registration_code:regCode,full_name:validatedReg.full_name||'',email:validatedReg.email||'',items,total_amount:cartTotal(),payment_proof_url:proofUrl})});
+    const ordData= await ordRes.json();
+    if(!ordRes.ok)throw new Error('Simpan gagal: '+ordData.error);
+    cart=[];updateBadge();validatedReg=null;buktiEl.value='';
     goStep('stepDone');
-  } catch(e) { showToast(e.message, true); }
-  finally { btn.disabled = false; btn.textContent = 'Kirim Pesanan'; }
+  }catch(e){showToast(e.message,true);}
+  finally{btn.disabled=false;btn.textContent='Kirim Pesanan';}
 });
 
-// ── Toast ──────────────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg, isErr=false) {
-  clearTimeout(toastTimer);
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.toggle('err', isErr); t.classList.add('show');
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+function showToast(msg,isErr=false){
+  clearTimeout(toastTimer);const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.toggle('err',isErr);t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 </script>
 </body>
