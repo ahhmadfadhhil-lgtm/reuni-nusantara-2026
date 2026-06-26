@@ -1,11 +1,6 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/register",    "dest": "/register.html" },
-    { "src": "/ticket",      "dest": "/ticket.html" },
-    { "src": "/validate",    "dest": "/validate.html" },
-    { "src": "/home",        "dest": "/index.html" },
-    { "src": "/merchandise", "dest": "/merchandise.html" }
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
