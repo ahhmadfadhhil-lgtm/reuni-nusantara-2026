@@ -1,38 +1,11 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/",
-      "destination": "/public/register.html"
-    },
-    {
-      "source": "/home",
-      "destination": "/public/index.html"
-    },
-    {
-      "source": "/register",
-      "destination": "/public/register.html"
-    },
-    {
-      "source": "/ticket",
-      "destination": "/public/ticket.html"
-    },
-    {
-      "source": "/validate",
-      "destination": "/public/validate.html"
-    },
-    {
-      "source": "/merchandise",
-      "destination": "/public/merchandise.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/$1"
-    }
+  "version": 2,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/register",    "dest": "/register.html" },
+    { "src": "/ticket",      "dest": "/ticket.html" },
+    { "src": "/validate",    "dest": "/validate.html" },
+    { "src": "/home",        "dest": "/index.html" },
+    { "src": "/merchandise", "dest": "/merchandise.html" }
   ]
 }
