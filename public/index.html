@@ -38,6 +38,9 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/index.css" />
+
+    <!-- Runtime config (generated at build time from VITE_SUPABASE_* env vars) -->
+    <script src="/env.js"></script>
   </head>
 
   <body class="font-body">
@@ -613,8 +616,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       (function () {
-        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const SB_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
+        const SB_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
         const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
         const modal = document.getElementById('cariTiketModal');
@@ -900,8 +903,8 @@
          ===================================================================== -->
     <script>
       (function () {
-        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const SB_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
+        const SB_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
         const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
         const container = document.getElementById('leaderboardList');
@@ -1086,8 +1089,8 @@
     <script>
       (function () {
         // Main project database
-        const SB_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+        const SB_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
+        const SB_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
         const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
         const modal = document.getElementById('donasiModal');

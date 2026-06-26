@@ -32,6 +32,7 @@
       .kv div:nth-child(odd) { color:#6b7a6f; }
       .kv div:nth-child(even) { font-weight:600; }
     </style>
+    <script src="/env.js"></script>
   </head>
   <body>
     <div class="wrap">
@@ -57,8 +58,8 @@
     </div>
 
     <script>
-      const SUPABASE_URL = 'https://hpcffpcbuaxdettrgquv.supabase.co';
-      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhwY2ZmcGNidWF4ZGV0dHJncXV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyOTY0MjAsImV4cCI6MjA5NTg3MjQyMH0.mAIncWSPMvWwsN3dCB-mmfWDLP6gwrF-AFkbvbC-GjQ';
+      const SUPABASE_URL = (window.__ENV && window.__ENV.SUPABASE_URL) || '';
+      const SUPABASE_KEY = (window.__ENV && window.__ENV.SUPABASE_ANON_KEY) || '';
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));

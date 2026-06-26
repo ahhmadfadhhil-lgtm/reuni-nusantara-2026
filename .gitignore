@@ -30,3 +30,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated runtime config (contains Supabase URL + anon key from env)
+public/env.js
+.env
+.env.local

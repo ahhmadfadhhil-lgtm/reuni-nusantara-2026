@@ -4,8 +4,12 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
+    "generate:env": "node scripts/generate-env.mjs",
+    "predev": "node scripts/generate-env.mjs",
     "dev": "vite dev",
+    "prebuild": "node scripts/generate-env.mjs",
     "build": "vite build",
+    "prebuild:dev": "node scripts/generate-env.mjs",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
