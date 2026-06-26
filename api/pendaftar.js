@@ -4,7 +4,7 @@
 // Kredensial Supabase HANYA ada di sisi server (env vars Vercel).
 //
 // Security features:
-//   - Rate limiting 5 req/menit/IP pada endpoint lookup
+//   - Rate limiting 5 req/menit/IP pada endpoint lookup (anti brute-force)
 //   - Validasi MIME + magic bytes + ukuran file pada upload_receipt
 //   - Tidak ada SUPABASE_URL / ANON_KEY yang dikirim ke browser
 // ============================================================
@@ -16,7 +16,9 @@ function getSupabase() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error('Supabase env vars not configured on server.');
-  return createClient(url, key);
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 function json(res, data, status = 200) {
@@ -28,7 +30,7 @@ function errRes(res, message, status = 500) {
 }
 
 export default async function handler(req, res) {
-  // CORS — hanya izinkan origin yang sama (same-site fetch dari public/)
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -153,7 +155,7 @@ export default async function handler(req, res) {
       const body = req.body || {};
 
       // POST /api/pendaftar?action=lookup
-      // ⚡ RATE LIMITED: maks 5 permintaan / menit / IP
+      // ⚡ RATE LIMITED: maks 5 permintaan / menit / IP (anti brute-force)
       if (action === 'lookup') {
         const ip = getClientIp(req);
         const rl = checkRateLimit(ip, 5, 60_000);
@@ -218,13 +220,27 @@ export default async function handler(req, res) {
       }
 
       // POST /api/pendaftar?action=upload_receipt
-      // 🔒 VALIDASI SERVER: MIME type, magic bytes, ukuran file
+      // 🔒 VALIDASI GANDA SERVER:
+      //    1. Cek MIME type header — hanya image/jpeg, image/png, image/webp
+      //    2. Cek ukuran file — maksimal 5MB
+      //    3. Cek magic bytes nyata dari buffer — anti penyusupan malware
       if (action === 'upload_receipt') {
         const { fileBase64, contentType, path: storagePath } = body;
         if (!fileBase64 || !contentType || !storagePath)
           return errRes(res, 'fileBase64, contentType, path required', 400);
 
-        // Decode dulu untuk validasi
+        // Validasi 1: MIME type header
+        const ctLower = String(contentType).toLowerCase();
+        const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedMimes.includes(ctLower)) {
+          return errRes(
+            res,
+            'Hanya file gambar yang diizinkan (JPEG, PNG, atau WebP). File lain akan ditolak demi keamanan sistem.',
+            400
+          );
+        }
+
+        // Decode base64
         let buffer;
         try {
           buffer = Buffer.from(fileBase64, 'base64');
@@ -232,19 +248,24 @@ export default async function handler(req, res) {
           return errRes(res, 'Format base64 tidak valid.', 400);
         }
 
-        // Validasi MIME + magic bytes + ukuran
+        // Validasi 2: Ukuran file maksimal 5MB
+        if (buffer.byteLength > 5 * 1024 * 1024) {
+          return errRes(res, 'Ukuran file melebihi batas maksimal 5MB.', 400);
+        }
+
+        // Validasi 3: Magic bytes (cek header nyata file, bukan hanya MIME claim)
         const validation = validateFileBuffer(buffer, contentType);
         if (!validation.ok) {
           return errRes(res, validation.error, 400);
         }
 
-        // Sanitise path — cegah path traversal
+        // Sanitise path — cegah path traversal attack
         const safePath = storagePath.replace(/\.\.[\/\\]/g, '').replace(/^[\/\\]+/, '');
         if (!safePath) return errRes(res, 'Path tidak valid.', 400);
 
         const { error: upErr } = await sb.storage
           .from('receipts')
-          .upload(safePath, buffer, { contentType, upsert: false });
+          .upload(safePath, buffer, { contentType: ctLower, upsert: false });
         if (upErr) return errRes(res, upErr.message);
 
         const { data: pub } = sb.storage.from('receipts').getPublicUrl(safePath);

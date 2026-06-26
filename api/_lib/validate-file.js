@@ -1,87 +1,102 @@
 // ============================================================
 // api/_lib/validate-file.js
-// Validasi file upload di sisi server sebelum diteruskan ke
-// Supabase Storage.
-// Mencegah upload file berbahaya / non-gambar.
+// Validasi file buffer di server: MIME type + magic bytes + ukuran.
+// Hanya JPEG, PNG, dan WebP yang diizinkan.
+// TIDAK ADA akses ke file system — semua validasi in-memory.
 // ============================================================
 
-/** MIME types yang diizinkan untuk bukti pembayaran */
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/gif',
-]);
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-/** Ukuran maksimum file: 5 MB */
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+// Magic bytes signatures untuk setiap format gambar
+const MAGIC_BYTES = {
+  'image/jpeg': [
+    // JPEG: FF D8 FF
+    [0xFF, 0xD8, 0xFF],
+  ],
+  'image/png': [
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A],
+  ],
+  'image/webp': [
+    // WebP: 52 49 46 46 ?? ?? ?? ?? 57 45 42 50
+    // (RIFF....WEBP) — cek byte 0-3 = RIFF dan byte 8-11 = WEBP
+    null, // special case handled below
+  ],
+};
 
 /**
- * Magic bytes (file signature) untuk tipe gambar umum.
- * Digunakan untuk memverifikasi konten file, bukan hanya MIME header
- * yang bisa dipalsukan oleh klien.
+ * Validasi magic bytes WebP
+ * Format: RIFF (4 bytes) + size (4 bytes) + WEBP (4 bytes)
  */
-const MAGIC_SIGNATURES = [
-  // JPEG: FF D8 FF
-  { mime: 'image/jpeg', bytes: [0xff, 0xd8, 0xff] },
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
-  { mime: 'image/png',  bytes: [0x89, 0x50, 0x4e, 0x47] },
-  // GIF: 47 49 46 38
-  { mime: 'image/gif',  bytes: [0x47, 0x49, 0x46, 0x38] },
-  // WebP: 52 49 46 46 ... 57 45 42 50 (RIFF....WEBP)
-  { mime: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46], offset: 0 },
-];
+function isWebP(buffer) {
+  if (buffer.length < 12) return false;
+  const riff = buffer.slice(0, 4).toString('ascii');
+  const webp = buffer.slice(8, 12).toString('ascii');
+  return riff === 'RIFF' && webp === 'WEBP';
+}
 
 /**
- * Validasi buffer file yang diupload.
- *
- * @param {Buffer} buffer       - Isi file sebagai Buffer
- * @param {string} contentType  - MIME type yang diklaim klien
+ * Cek apakah buffer dimulai dengan sequence magic bytes yang diberikan
+ */
+function matchesMagic(buffer, magic) {
+  if (buffer.length < magic.length) return false;
+  return magic.every((byte, i) => buffer[i] === byte);
+}
+
+/**
+ * Validasi file buffer.
+ * @param {Buffer} buffer - Buffer file yang sudah di-decode dari base64
+ * @param {string} contentType - MIME type yang diklaim oleh client
  * @returns {{ ok: boolean, error?: string }}
  */
 export function validateFileBuffer(buffer, contentType) {
-  // 1. Normalise MIME
-  const mime = (contentType || '').toLowerCase().split(';')[0].trim();
-
-  // 2. Cek MIME type yang diizinkan
-  if (!ALLOWED_MIME_TYPES.has(mime)) {
-    return {
-      ok: false,
-      error: `Tipe file tidak diizinkan: ${mime}. Hanya JPEG, PNG, WebP, atau GIF.`,
-    };
-  }
-
-  // 3. Cek ukuran file
+  // 1. Cek ukuran
   if (!buffer || buffer.length === 0) {
-    return { ok: false, error: 'File kosong.' };
+    return { ok: false, error: 'File kosong atau tidak dapat dibaca.' };
   }
-  if (buffer.length > MAX_FILE_SIZE_BYTES) {
-    const sizeMb = (buffer.length / 1024 / 1024).toFixed(2);
+
+  if (buffer.byteLength > MAX_FILE_SIZE) {
+    return { ok: false, error: 'Ukuran file melebihi batas maksimal 5MB.' };
+  }
+
+  // 2. Normalisasi MIME type
+  const ct = String(contentType || '').toLowerCase().trim();
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+  if (!allowedTypes.includes(ct)) {
     return {
       ok: false,
-      error: `Ukuran file terlalu besar: ${sizeMb} MB. Maksimum 5 MB.`,
+      error: `Tipe file "${ct}" tidak diizinkan. Hanya JPEG, PNG, dan WebP yang diterima.`,
     };
   }
 
-  // 4. Verifikasi magic bytes (cek header file sungguhan)
-  const header = buffer.subarray(0, 12);
-  let signatureMatched = false;
+  // 3. Validasi magic bytes (header file asli)
+  let magicOk = false;
 
-  for (const sig of MAGIC_SIGNATURES) {
-    const offset = sig.offset || 0;
-    const matches = sig.bytes.every((b, i) => header[offset + i] === b);
-    if (matches) {
-      signatureMatched = true;
-      break;
+  if (ct === 'image/jpeg') {
+    magicOk = MAGIC_BYTES['image/jpeg'].some(magic => matchesMagic(buffer, magic));
+    if (!magicOk) {
+      return {
+        ok: false,
+        error: 'File bukan gambar JPEG yang valid. Kemungkinan file telah dimodifikasi atau bukan gambar asli.',
+      };
     }
-  }
-
-  if (!signatureMatched) {
-    return {
-      ok: false,
-      error: 'Konten file tidak sesuai dengan tipe gambar yang valid.',
-    };
+  } else if (ct === 'image/png') {
+    magicOk = MAGIC_BYTES['image/png'].some(magic => matchesMagic(buffer, magic));
+    if (!magicOk) {
+      return {
+        ok: false,
+        error: 'File bukan gambar PNG yang valid. Kemungkinan file telah dimodifikasi atau bukan gambar asli.',
+      };
+    }
+  } else if (ct === 'image/webp') {
+    magicOk = isWebP(buffer);
+    if (!magicOk) {
+      return {
+        ok: false,
+        error: 'File bukan gambar WebP yang valid. Kemungkinan file telah dimodifikasi atau bukan gambar asli.',
+      };
+    }
   }
 
   return { ok: true };
