@@ -1,14 +1,5 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
-  "outputDirectory": "public",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "rewrites": [
-    { "source": "/",            "destination": "/register.html" },
     { "source": "/register",    "destination": "/register.html" },
     { "source": "/ticket",      "destination": "/ticket.html" },
     { "source": "/validate",    "destination": "/validate.html" },
