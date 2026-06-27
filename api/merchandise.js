@@ -7,24 +7,15 @@
 //   - validate_ticket: WAJIB payment_status = 'success' (anti bypass)
 //   - Validasi MIME + magic bytes + ukuran file pada upload_receipt
 // ============================================================
-import { createClient } from '@supabase/supabase-js';
+import { formatApiError, getSupabase } from './_supabase.js';
 import { validateFileBuffer } from './_lib/validate-file.js';
-
-function getSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) throw new Error('Supabase env vars not configured on server.');
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
 
 function json(res, data, status = 200) {
   res.status(status).json(data);
 }
 
 function errRes(res, message, status = 500) {
-  res.status(status).json({ error: message });
+  res.status(status).json({ error: formatApiError(message) });
 }
 
 export default async function handler(req, res) {
