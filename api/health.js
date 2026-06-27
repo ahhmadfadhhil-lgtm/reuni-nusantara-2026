@@ -32,7 +32,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const sb = getSupabase();
+    const { sb, error: sbErr } = getSupabase();
+    if (sbErr) { res.status(503).json({ error: sbErr }); return; }
     const { error, count } = await sb
       .from('registrations')
       .select('registration_code', { count: 'exact', head: true })

@@ -1,6 +1,18 @@
 {
+  "version": 2,
   "cleanUrls": true,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
+    { "source": "/api/:path*", "destination": "/api/:path*" },
+    { "source": "/",            "destination": "/register.html" },
+    { "source": "/register",    "destination": "/register.html" },
+    { "source": "/ticket",      "destination": "/ticket.html" },
+    { "source": "/validate",    "destination": "/validate.html" },
+    { "source": "/home",        "destination": "/index.html" },
+    { "source": "/merchandise", "destination": "/merchandise.html" }
   ]
 }

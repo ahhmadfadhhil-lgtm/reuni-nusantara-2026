@@ -26,9 +26,13 @@ export function getSupabase() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
 
   if (!url || !key) {
-    throw new Error('Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY atau SUPABASE_SECRET_KEY, lalu redeploy.');
+    return {
+      sb: null,
+      error: 'Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY atau SUPABASE_SECRET_KEY di Environment Variables Vercel, lalu redeploy.',
+    };
   }
 
+  // Cache client selama env vars tidak berubah (efisiensi serverless warm start)
   if (!cachedClient || cachedUrl !== url || cachedKey !== key) {
     cachedUrl = url;
     cachedKey = key;
@@ -37,7 +41,7 @@ export function getSupabase() {
     });
   }
 
-  return cachedClient;
+  return { sb: cachedClient, error: null };
 }
 
 export function formatApiError(error) {

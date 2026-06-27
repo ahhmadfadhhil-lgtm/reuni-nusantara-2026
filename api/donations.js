@@ -27,7 +27,8 @@ export default async function handler(req, res) {
   const { action } = req.query;
 
   try {
-    const sb = getSupabase();
+    const { sb, error: sbErr } = getSupabase();
+    if (sbErr) { res.status(503).json({ error: sbErr }); return; }
 
     if (req.method === 'POST') {
       const body = req.body || {};
