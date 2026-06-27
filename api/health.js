@@ -24,8 +24,10 @@ export default async function handler(req, res) {
       envConfigured: false,
       hasUrl: env.hasUrl,
       hasServiceRoleKey: env.hasServiceRoleKey,
+      hasSecretKey: env.hasSecretKey,
+      hasServerKey: env.hasServerKey,
       canQuery: false,
-      error: formatApiError('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing'),
+      error: formatApiError('SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/SUPABASE_SECRET_KEY is missing'),
     });
   }
 
@@ -41,7 +43,9 @@ export default async function handler(req, res) {
         ok: false,
         envConfigured: true,
         hasUrl: true,
-        hasServiceRoleKey: true,
+        hasServiceRoleKey: env.hasServiceRoleKey,
+        hasSecretKey: env.hasSecretKey,
+        hasServerKey: env.hasServerKey,
         canQuery: false,
         error: formatApiError(error.message),
         code: error.code || null,
@@ -52,7 +56,9 @@ export default async function handler(req, res) {
       ok: true,
       envConfigured: true,
       hasUrl: true,
-      hasServiceRoleKey: true,
+      hasServiceRoleKey: env.hasServiceRoleKey,
+      hasSecretKey: env.hasSecretKey,
+      hasServerKey: env.hasServerKey,
       canQuery: true,
       registrationsCount: typeof count === 'number' ? count : null,
     });
@@ -61,7 +67,9 @@ export default async function handler(req, res) {
       ok: false,
       envConfigured: true,
       hasUrl: true,
-      hasServiceRoleKey: true,
+      hasServiceRoleKey: env.hasServiceRoleKey,
+      hasSecretKey: env.hasSecretKey,
+      hasServerKey: env.hasServerKey,
       canQuery: false,
       error: formatApiError(error),
     });

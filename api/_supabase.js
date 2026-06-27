@@ -9,20 +9,24 @@ let cachedKey = '';
 
 export function getSupabaseEnvStatus() {
   const url = process.env.SUPABASE_URL || '';
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const secretKey = process.env.SUPABASE_SECRET_KEY || '';
+  const key = serviceRoleKey || secretKey;
   return {
     hasUrl: Boolean(url),
-    hasServiceRoleKey: Boolean(key),
+    hasServiceRoleKey: Boolean(serviceRoleKey),
+    hasSecretKey: Boolean(secretKey),
+    hasServerKey: Boolean(key),
     configured: Boolean(url && key),
   };
 }
 
 export function getSupabase() {
   const url = process.env.SUPABASE_URL || '';
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
 
   if (!url || !key) {
-    throw new Error('Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY, lalu redeploy.');
+    throw new Error('Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY atau SUPABASE_SECRET_KEY, lalu redeploy.');
   }
 
   if (!cachedClient || cachedUrl !== url || cachedKey !== key) {
@@ -39,12 +43,12 @@ export function getSupabase() {
 export function formatApiError(error) {
   const message = String(error?.message || error || 'Internal server error');
 
-  if (/SUPABASE_URL|SUPABASE_SERVICE_ROLE_KEY|env vars|environment/i.test(message)) {
-    return 'Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY di Environment Variables, lalu redeploy.';
+  if (/SUPABASE_URL|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|env vars|environment/i.test(message)) {
+    return 'Konfigurasi server Vercel belum lengkap: isi SUPABASE_URL dan SUPABASE_SERVICE_ROLE_KEY atau SUPABASE_SECRET_KEY di Environment Variables, lalu redeploy.';
   }
 
   if (/Invalid API key|JWT|signature|not a valid/i.test(message)) {
-    return 'Kredensial Supabase server tidak valid. Pastikan SUPABASE_SERVICE_ROLE_KEY adalah service_role key yang benar, bukan anon/publishable key.';
+    return 'Kredensial Supabase server tidak valid. Pastikan server key adalah service_role key / secret key yang aktif, bukan anon/publishable key dan bukan key yang sudah dihapus/di-rotate.';
   }
 
   if (/permission denied|row-level security|violates row-level security/i.test(message)) {
